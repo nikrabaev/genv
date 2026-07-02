@@ -32,7 +32,7 @@ Or download a prebuilt binary (macOS, Linux, Windows — amd64/arm64) from the
 
 ```bash
 genv init                # create genv.json + an encrypted local vault
-# genv init --no-encrypt   # plaintext local vault instead (stays git-ignored)
+# genv init --encrypt=false   # plaintext local vault instead (stays git-ignored)
 
 # Describe a recipient of generated files and a place to store values:
 genv consumer add api --strategy single --base-dir apps/api
@@ -93,7 +93,7 @@ every command:
 
 | Command | Purpose |
 | --- | --- |
-| `init [--encrypt \| --no-encrypt]` | create `genv.json` and the local vault config (no scanning) |
+| `init [--encrypt=false]` | create `genv.json` and the local vault config (encrypted by default; no scanning) |
 | `generate [--vault <v>] [--consumer <c>]` | regenerate `.env` files (and compose) — the only writer of outputs |
 | `check` | validate interpolation, vault keys, compose markers, staleness, git tracking |
 | `tui` | interactive terminal UI over the whole feature set (see [TUI](#tui)) |
@@ -119,7 +119,7 @@ Each manages an entity group; all sub-verbs accept the global flags.
 | Command | Purpose |
 | --- | --- |
 | `var define <name> [--group <key>] [--secret] [--description <text>] [--example <text>]` | define a variable |
-| `var update <name> [--group <key>] [--secret\|--no-secret] [--description] [--example]` | edit a definition |
+| `var update <name> [--group <key>] [--secret[=false]] [--description] [--example]` | edit a definition |
 | `var remove <name>` | delete a definition |
 | `var list [--vault <v>] [--consumer <c>] [--group <key>]` | list variables (secrets masked) |
 | `var show <name>` | inspect one variable (secrets masked) |

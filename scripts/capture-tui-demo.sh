@@ -29,7 +29,7 @@ GENV="$WORK/bin/genv"
 # --- build a realistic demo repo (plaintext vault ⇒ no passphrase modal) ---
 mkdir -p "$WORK"
 cd "$WORK"
-$GENV init --no-encrypt >/dev/null
+$GENV init --encrypt=false >/dev/null
 
 $GENV consumer add api    --strategy single --base-dir apps/api    --filename .env >/dev/null
 $GENV consumer add web    --strategy single --base-dir apps/web    --filename .env >/dev/null
