@@ -2,10 +2,10 @@ package generate
 
 import "strings"
 
-// OwnershipMarker is the exact first line of every menv-managed generated file.
-// The ownership rule: menv only overwrites or deletes a file whose first line
+// OwnershipMarker is the exact first line of every genv-managed generated file.
+// The ownership rule: genv only overwrites or deletes a file whose first line
 // carries this marker. If the user removes it, the file belongs to them.
-const OwnershipMarker = "# ── managed by menv ─ DO NOT EDIT ─"
+const OwnershipMarker = "# ── managed by genv ─ DO NOT EDIT ─"
 
 // headerCommentLines is the number of comment lines in the disclaimer header
 // (not counting the blank separator line).
@@ -28,8 +28,8 @@ func DisclaimerHeader(meta HeaderMeta) string {
 		origin = " · consumer: " + meta.Consumer
 	}
 	return OwnershipMarker + "───────────────────────────\n" +
-		"# Generated from menv.json" + origin + "\n" +
-		"# Re-create with `menv generate`; your edits will be overwritten.\n" +
+		"# Generated from genv.json" + origin + "\n" +
+		"# Re-create with `genv generate`; your edits will be overwritten.\n" +
 		"\n"
 }
 
@@ -52,7 +52,7 @@ func StripDisclaimer(content string) string {
 }
 
 // HeaderVault extracts the vault name embedded in the header's origin line, or
-// returns "" if the content is not menv-managed or has no vault annotation.
+// returns "" if the content is not genv-managed or has no vault annotation.
 func HeaderVault(content string) string {
 	if !HasOwnershipMarker(content) {
 		return ""

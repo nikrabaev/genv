@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
+	"github.com/nikrabaev/genv/internal/core"
 )
 
-const AuthFileRel = ".menv/auth.local.json"
+const AuthFileRel = ".genv/auth.local.json"
 
 // authFileEntry is a per-machine vault auth hook.
 type authFileEntry struct {
@@ -25,7 +25,7 @@ type authFileEntry struct {
 func AuthEnvVarName(vault string) string {
 	upper := strings.ToUpper(vault)
 	var b strings.Builder
-	b.WriteString("MENV_VAULT_AUTH_")
+	b.WriteString("GENV_VAULT_AUTH_")
 	for _, ch := range upper {
 		if (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') {
 			b.WriteRune(ch)
@@ -43,11 +43,11 @@ func readAuthFileEntry(root, vault string) (*authFileEntry, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("could not read %s: %v", AuthFileRel, err)}
+		return nil, &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("could not read %s: %v", AuthFileRel, err)}
 	}
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, &core.MenvError{Code: core.ErrParse, Message: AuthFileRel + " is not valid JSON"}
+		return nil, &core.GenvError{Code: core.ErrParse, Message: AuthFileRel + " is not valid JSON"}
 	}
 	entryRaw, ok := raw[vault]
 	if !ok {
@@ -60,26 +60,26 @@ func readAuthFileEntry(root, vault string) (*authFileEntry, error) {
 		Command string `json:"command"`
 	}
 	if err := json.Unmarshal(entryRaw, &entry); err != nil {
-		return nil, &core.MenvError{Code: core.ErrParse, Message: fmt.Sprintf("%s: entry for %q is not valid JSON", AuthFileRel, vault)}
+		return nil, &core.GenvError{Code: core.ErrParse, Message: fmt.Sprintf("%s: entry for %q is not valid JSON", AuthFileRel, vault)}
 	}
 	switch entry.Type {
 	case "value":
 		if entry.Value == "" {
-			return nil, &core.MenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "value"`, AuthFileRel, vault)}
+			return nil, &core.GenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "value"`, AuthFileRel, vault)}
 		}
 		return &authFileEntry{Type: "value", Value: entry.Value}, nil
 	case "env":
 		if entry.Name == "" {
-			return nil, &core.MenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "name"`, AuthFileRel, vault)}
+			return nil, &core.GenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "name"`, AuthFileRel, vault)}
 		}
 		return &authFileEntry{Type: "env", Name: entry.Name}, nil
 	case "command":
 		if entry.Command == "" {
-			return nil, &core.MenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "command"`, AuthFileRel, vault)}
+			return nil, &core.GenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have a non-empty "command"`, AuthFileRel, vault)}
 		}
 		return &authFileEntry{Type: "command", Command: entry.Command}, nil
 	default:
-		return nil, &core.MenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have type "value", "env", or "command"`, AuthFileRel, vault)}
+		return nil, &core.GenvError{Code: core.ErrParse, Message: fmt.Sprintf(`%s: entry for %q must have type "value", "env", or "command"`, AuthFileRel, vault)}
 	}
 }
 
@@ -93,7 +93,7 @@ func runAuthCommand(vault, command string) (string, error) {
 		if msg == "" {
 			msg = command
 		}
-		return "", &core.MenvError{Code: core.ErrAuthFailed, Message: fmt.Sprintf("auth command for vault %q failed: %s", vault, msg)}
+		return "", &core.GenvError{Code: core.ErrAuthFailed, Message: fmt.Sprintf("auth command for vault %q failed: %s", vault, msg)}
 	}
 	return strings.TrimSpace(string(out)), nil
 }
@@ -127,7 +127,7 @@ func ResolveVaultAuth(vault string, opts ResolveAuthOptions) (VaultAuth, error) 
 		case "env":
 			v, ok := opts.Env[entry.Name]
 			if !ok {
-				return VaultAuth{}, &core.MenvError{
+				return VaultAuth{}, &core.GenvError{
 					Code:    core.ErrAuthFailed,
 					Message: fmt.Sprintf(`%s: %q points at unset env var %s`, AuthFileRel, vault, entry.Name),
 				}
@@ -148,7 +148,7 @@ func ResolveVaultAuth(vault string, opts ResolveAuthOptions) (VaultAuth, error) 
 		}
 		return VaultAuth{Secret: secret, HasSecret: true}, nil
 	}
-	return VaultAuth{}, &core.MenvError{
+	return VaultAuth{}, &core.GenvError{
 		Code: core.ErrAuthMissing,
 		Message: fmt.Sprintf(
 			"no auth for vault %q. Supply it via --vault-auth %s=…, the %s env var, a %q entry in %s, or run on a TTY to be prompted.",
@@ -160,7 +160,7 @@ func ResolveVaultAuth(vault string, opts ResolveAuthOptions) (VaultAuth, error) 
 // ResolveVaultAuthOptional resolves auth without prompting; returns empty
 // VaultAuth (HasSecret=false) when nothing is configured — never returns
 // AUTH_MISSING. The CLI uses this before opening vaults that may not need
-// auth (plaintext menv-local); if Init raises AUTH_MISSING the caller prompts.
+// auth (plaintext genv-local); if Init raises AUTH_MISSING the caller prompts.
 func ResolveVaultAuthOptional(vaultName string, root string, env map[string]string) (VaultAuth, error) {
 	envVar := AuthEnvVarName(vaultName)
 	if v, ok := env[envVar]; ok {
@@ -177,7 +177,7 @@ func ResolveVaultAuthOptional(vaultName string, root string, env map[string]stri
 		case "env":
 			v, ok := env[entry.Name]
 			if !ok {
-				return VaultAuth{}, &core.MenvError{
+				return VaultAuth{}, &core.GenvError{
 					Code:    core.ErrAuthFailed,
 					Message: fmt.Sprintf(`%s: %q points at unset env var %s`, AuthFileRel, vaultName, entry.Name),
 				}

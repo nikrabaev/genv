@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // GlobalWriteInput holds the parameters for PlanGlobalDefine and PlanGlobalUpdate.
@@ -21,7 +21,7 @@ func buildGlobalValueDef(input GlobalWriteInput) (registry.GlobalValueDef, error
 	switch input.Source {
 	case "static":
 		if input.Value == "" {
-			return registry.GlobalValueDef{}, &core.MenvError{
+			return registry.GlobalValueDef{}, &core.GenvError{
 				Code:    core.ErrValidation,
 				Message: "static global needs --value",
 			}
@@ -30,7 +30,7 @@ func buildGlobalValueDef(input GlobalWriteInput) (registry.GlobalValueDef, error
 	case "runtime":
 		return registry.GlobalValueDef{Source: "runtime"}, nil
 	default:
-		return registry.GlobalValueDef{}, &core.MenvError{
+		return registry.GlobalValueDef{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf(`source must be "runtime" or "static", got %q`, input.Source),
 		}
@@ -40,7 +40,7 @@ func buildGlobalValueDef(input GlobalWriteInput) (registry.GlobalValueDef, error
 // PlanGlobalDefine creates a new global or adds a vault entry to an existing one.
 func PlanGlobalDefine(r registry.Registry, input GlobalWriteInput) (OpResult, error) {
 	if !NameRE.MatchString(input.Name) {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("invalid global name %q (env-var style)", input.Name),
 		}
@@ -50,9 +50,9 @@ func PlanGlobalDefine(r registry.Registry, input GlobalWriteInput) (OpResult, er
 	}
 	if def, exists := r.Globals[input.Name]; exists {
 		if _, vaultExists := def.Values[input.Vault]; vaultExists {
-			return OpResult{}, &core.MenvError{
+			return OpResult{}, &core.GenvError{
 				Code:    core.ErrValidation,
-				Message: fmt.Sprintf("global %q is already defined for vault %q — use `menv global update`", input.Name, input.Vault),
+				Message: fmt.Sprintf("global %q is already defined for vault %q — use `genv global update`", input.Name, input.Vault),
 			}
 		}
 	}
@@ -92,9 +92,9 @@ func PlanGlobalUpdate(r registry.Registry, input GlobalWriteInput) (OpResult, er
 	}
 	def, exists := r.Globals[input.Name]
 	if !exists || func() bool { _, ok := def.Values[input.Vault]; return !ok }() {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrNotFound,
-			Message: fmt.Sprintf("global %q is not defined for vault %q — use `menv global define`", input.Name, input.Vault),
+			Message: fmt.Sprintf("global %q is not defined for vault %q — use `genv global define`", input.Name, input.Vault),
 		}
 	}
 	valueDef, err := buildGlobalValueDef(input)
@@ -129,14 +129,14 @@ type GlobalRemoveInput struct {
 func PlanGlobalRemove(r registry.Registry, input GlobalRemoveInput) (OpResult, error) {
 	def, exists := r.Globals[input.Name]
 	if !exists {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("unknown global %q", input.Name),
 		}
 	}
 	if input.Vault != "" {
 		if _, ok := def.Values[input.Vault]; !ok {
-			return OpResult{}, &core.MenvError{
+			return OpResult{}, &core.GenvError{
 				Code:    core.ErrNotFound,
 				Message: fmt.Sprintf("global %q is not defined for vault %q", input.Name, input.Vault),
 			}

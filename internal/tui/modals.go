@@ -8,7 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
 
-	"github.com/nikrabaev/menv/go/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/core/ops"
 )
 
 // modal is one entry on the modal stack. Only the topmost modal receives input.
@@ -43,7 +43,7 @@ func (q quitModal) View(a *App) string {
 	body := "All changes are already applied — nothing is pending.\n\n" +
 		a.style.keyCap.Render("y") + a.style.keyDesc.Render(" quit   ") +
 		a.style.keyCap.Render("n") + a.style.keyDesc.Render(" stay")
-	return a.frameModal("Quit menv?", body, false)
+	return a.frameModal("Quit genv?", body, false)
 }
 
 // ── confirm ─────────────────────────────────────────────────────────────────
@@ -240,7 +240,7 @@ func (m *findingsModal) Update(a *App, msg tea.Msg) tea.Cmd {
 }
 func (m *findingsModal) View(a *App) string {
 	body := m.vp.View() + "\n" + a.style.keyDesc.Render("↑/↓ scroll · esc close")
-	return a.frameModal("menv check", body, false)
+	return a.frameModal("genv check", body, false)
 }
 
 // ── detail (narrow-mode inspector) ──────────────────────────────────────────

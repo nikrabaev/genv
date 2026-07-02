@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/core/ops"
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/internal/vault"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/internal/vault"
 )
 
 // MutationFlags bundles global flags every mutating command needs.
@@ -65,7 +65,7 @@ func OpenVaultSession(root string, reg registry.Registry, vaultName string, auth
 
 	sess, err := p.Init(def.VaultConfig, vault.VaultInitContext{Root: root, Auth: resolved})
 	if err != nil {
-		var me *core.MenvError
+		var me *core.GenvError
 		if errors.As(err, &me) && me.Code == core.ErrAuthMissing && promptFn != nil {
 			secret, pe := promptFn(vaultName)
 			if pe != nil {
@@ -110,7 +110,7 @@ func CollectValueRecords(root string, reg registry.Registry, vaultNames []string
 	for _, vaultName := range unique {
 		sess, err := OpenVaultSession(root, reg, vaultName, auth, promptFn)
 		if err != nil {
-			var me *core.MenvError
+			var me *core.GenvError
 			if errors.As(err, &me) && (me.Code == core.ErrAuthMissing || me.Code == core.ErrAuthFailed) {
 				unverified = append(unverified, vaultName)
 				continue
@@ -231,7 +231,7 @@ func ParseVaultAuth(pairs []string) (map[string]string, error) {
 	for _, pair := range pairs {
 		idx := strings.IndexByte(pair, '=')
 		if idx < 1 {
-			return nil, &core.MenvError{
+			return nil, &core.GenvError{
 				Code:    core.ErrValidation,
 				Message: fmt.Sprintf("--vault-auth expects <vault>=<secret>, got %q", pair),
 			}

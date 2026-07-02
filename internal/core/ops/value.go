@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // KeyQuery locates a mapping entry for get/set operations.
@@ -29,7 +29,7 @@ func ResolveMappingKey(r registry.Registry, q KeyQuery) (key string, consumers [
 	}
 	mapping := def.VaultMapping[q.Vault]
 	if len(mapping) == 0 {
-		return "", nil, &core.MenvError{
+		return "", nil, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("%q is not wired to any consumer in vault %q", q.Name, q.Vault),
 		}
@@ -37,7 +37,7 @@ func ResolveMappingKey(r registry.Registry, q KeyQuery) (key string, consumers [
 	if q.Consumer != "" {
 		entry, ok := mapping[q.Consumer]
 		if !ok {
-			return "", nil, &core.MenvError{
+			return "", nil, &core.GenvError{
 				Code:    core.ErrNotFound,
 				Message: fmt.Sprintf("%q is not wired to %q in vault %q", q.Name, q.Consumer, q.Vault),
 			}
@@ -62,7 +62,7 @@ func ResolveMappingKey(r registry.Registry, q KeyQuery) (key string, consumers [
 		options = append(options, strings.Join(cs, "/"))
 	}
 	sort.Strings(options)
-	return "", nil, &core.MenvError{
+	return "", nil, &core.GenvError{
 		Code:    core.ErrAmbiguous,
 		Message: fmt.Sprintf("%q holds different values per consumer in vault %q — pass --consumer (one of: %s)", q.Name, q.Vault, strings.Join(options, ", ")),
 	}
@@ -116,7 +116,7 @@ func PlanSetUniqueValue(r registry.Registry, input SetUniqueValueInput) (OpResul
 	mapping := def.VaultMapping[input.Vault]
 	entry, ok := mapping[input.Consumer]
 	if !ok {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("%q is not wired to %q in vault %q", input.Name, input.Consumer, input.Vault),
 		}

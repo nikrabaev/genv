@@ -3,10 +3,10 @@ package tui
 import (
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/nikrabaev/menv/go/internal/cli"
-	"github.com/nikrabaev/menv/go/internal/core"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/cli"
+	"github.com/nikrabaev/genv/internal/core"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // ── async messages ──────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ func (a *App) loadFindingsCmd() tea.Cmd {
 func (a *App) loadBackupsCmd() tea.Cmd {
 	root := a.ctx.Root
 	return func() tea.Msg {
-		keys, _ := menvio.ListBackups(root)
+		keys, _ := genvio.ListBackups(root)
 		return backupsMsg{keys: keys}
 	}
 }

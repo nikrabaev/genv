@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-// ValidationIssue represents a single validation problem found in menv.json.
+// ValidationIssue represents a single validation problem found in genv.json.
 type ValidationIssue struct {
 	Path    string
 	Message string

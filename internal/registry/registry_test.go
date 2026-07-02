@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/tests/helpers"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/tests/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,8 +39,8 @@ func TestValidateRegistry_UnknownDefaultVault(t *testing.T) {
 
 func TestValidateRegistry_InvalidVaultSlug(t *testing.T) {
 	r := helpers.MakeRegistry()
-	cfg, _ := json.Marshal(map[string]any{"filename": ".menv/v.json", "encryption": false})
-	r.Vaults["Bad-Name"] = registry.VaultDef{VaultType: "menv-local", VaultConfig: cfg}
+	cfg, _ := json.Marshal(map[string]any{"filename": ".genv/v.json", "encryption": false})
+	r.Vaults["Bad-Name"] = registry.VaultDef{VaultType: "genv-local", VaultConfig: cfg}
 	issues := registry.ValidateRegistry(r)
 	// default vault check should also fail since "local" is still there
 	// but we should have at least one issue about the invalid name
@@ -53,7 +53,7 @@ func TestValidateRegistry_InvalidVaultSlug(t *testing.T) {
 
 func TestValidateRegistry_MissingVaultType(t *testing.T) {
 	r := helpers.MakeRegistry()
-	cfg, _ := json.Marshal(map[string]any{"filename": ".menv/v.json"})
+	cfg, _ := json.Marshal(map[string]any{"filename": ".genv/v.json"})
 	r.Vaults["extra"] = registry.VaultDef{VaultType: "", VaultConfig: cfg}
 	issues := registry.ValidateRegistry(r)
 	paths := make([]string, len(issues))
@@ -138,7 +138,7 @@ func TestValidateRegistry_StaticGlobalMissingValue(t *testing.T) {
 
 func TestRegistryRoundTrip(t *testing.T) {
 	r := helpers.MakeRegistry()
-	dir, err := os.MkdirTemp("", "menv-reg-test-")
+	dir, err := os.MkdirTemp("", "genv-reg-test-")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(dir) })
 
@@ -154,7 +154,7 @@ func TestRegistryRoundTrip(t *testing.T) {
 }
 
 func TestLoadRegistry_NotFound(t *testing.T) {
-	dir, err := os.MkdirTemp("", "menv-reg-test-")
+	dir, err := os.MkdirTemp("", "genv-reg-test-")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(dir) })
 
@@ -164,11 +164,11 @@ func TestLoadRegistry_NotFound(t *testing.T) {
 }
 
 func TestLoadRegistry_InvalidJSON(t *testing.T) {
-	dir, err := os.MkdirTemp("", "menv-reg-test-")
+	dir, err := os.MkdirTemp("", "genv-reg-test-")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(dir) })
 
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "menv.json"), []byte("not json"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "genv.json"), []byte("not json"), 0o644))
 	_, err = registry.LoadRegistry(dir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "PARSE")
@@ -176,12 +176,12 @@ func TestLoadRegistry_InvalidJSON(t *testing.T) {
 
 func TestSaveRegistry_TrailingNewline(t *testing.T) {
 	r := helpers.MakeRegistry()
-	dir, err := os.MkdirTemp("", "menv-reg-test-")
+	dir, err := os.MkdirTemp("", "genv-reg-test-")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(dir) })
 
 	require.NoError(t, registry.SaveRegistry(dir, r))
-	data, err := os.ReadFile(filepath.Join(dir, "menv.json"))
+	data, err := os.ReadFile(filepath.Join(dir, "genv.json"))
 	require.NoError(t, err)
 	assert.Equal(t, byte('\n'), data[len(data)-1], "saved file must end with newline")
 }

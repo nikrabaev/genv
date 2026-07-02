@@ -93,7 +93,7 @@ func ExpandAll(input ExpandInput) (map[string]string, error) {
 		for i, v := range visiting {
 			if v == name {
 				chain := append(visiting[i:], name)
-				return "", &MenvError{
+				return "", &GenvError{
 					Code:    ErrValidation,
 					Message: "interpolation cycle: " + strings.Join(chain, " → "),
 				}
@@ -117,7 +117,7 @@ func ExpandAll(input ExpandInput) (map[string]string, error) {
 			}
 			g, isGlobal := input.Globals[seg.Text]
 			if !isGlobal {
-				return "", &MenvError{
+				return "", &GenvError{
 					Code: ErrValidation,
 					Message: fmt.Sprintf(
 						"${%s} in %s does not resolve to a variable or global in this scope",

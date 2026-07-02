@@ -11,17 +11,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/core/ops"
-	"github.com/nikrabaev/menv/go/internal/generate"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/internal/vault"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/generate"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/internal/vault"
 	"github.com/spf13/cobra"
 )
 
 // BuildProgram constructs the full cobra command tree.
-// root is the menv.json directory; newKey generates vault mapping keys.
+// root is the genv.json directory; newKey generates vault mapping keys.
 func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 	if newKey == nil {
 		newKey = func() string { return uuid.New().String() }
@@ -62,7 +62,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 	}
 
 	rootCmd := &cobra.Command{
-		Use:           "menv",
+		Use:           "genv",
 		Short:         "environment variables across a monorepo — registry + pluggable vaults (v2)",
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -77,7 +77,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 		var encrypt bool
 		cmd := &cobra.Command{
 			Use:   "init",
-			Short: "create an empty menv.json and the local vault config",
+			Short: "create an empty genv.json and the local vault config",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				flags, err := getFlags()
 				if err != nil {
@@ -128,19 +128,19 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 				if err := RunMutation(root, reg, op, flags, io, nil, MutationExtras{}, promptFn); err != nil {
 					return err
 				}
-				if !flags.DryRun && vaultType == "menv-local" {
+				if !flags.DryRun && vaultType == "genv-local" {
 					var localCfg struct {
 						Filename   string `json:"filename"`
 						Encryption bool   `json:"encryption"`
 					}
 					if json.Unmarshal(cfgRaw, &localCfg) == nil && !localCfg.Encryption && localCfg.Filename != "" {
-						_ = menvio.UpsertManagedBlock(root, []string{localCfg.Filename})
+						_ = genvio.UpsertManagedBlock(root, []string{localCfg.Filename})
 					}
 				}
 				return nil
 			},
 		}
-		cmd.Flags().StringVar(&vaultType, "type", "", "provider type (menv-local)")
+		cmd.Flags().StringVar(&vaultType, "type", "", "provider type (genv-local)")
 		_ = cmd.MarkFlagRequired("type")
 		cmd.Flags().StringVar(&configRaw, "config", "", "provider config as <key>=<value>[,…]")
 		vaultCmd.AddCommand(cmd)
@@ -242,7 +242,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 			}
 			def, ok := reg.Vaults[args[0]]
 			if !ok {
-				return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown vault %q", args[0])}
+				return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown vault %q", args[0])}
 			}
 			data, _ := json.MarshalIndent(def, "", "  ")
 			emit(flags, def, string(data))
@@ -265,7 +265,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 					return err
 				}
 				if strategy != "single" && strategy != "per-vault" {
-					return &core.MenvError{Code: core.ErrValidation, Message: fmt.Sprintf("--strategy must be \"single\" or \"per-vault\", got %q", strategy)}
+					return &core.GenvError{Code: core.ErrValidation, Message: fmt.Sprintf("--strategy must be \"single\" or \"per-vault\", got %q", strategy)}
 				}
 				reg, err := loadReg()
 				if err != nil {
@@ -304,7 +304,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 							entries = append(paths.Main, paths.Local...)
 						}
 						if len(entries) > 0 {
-							_ = menvio.UpsertManagedBlock(root, entries)
+							_ = genvio.UpsertManagedBlock(root, entries)
 						}
 					}
 				}
@@ -374,7 +374,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 							entries = append(paths.Main, paths.Local...)
 						}
 						if len(entries) > 0 {
-							_ = menvio.UpsertManagedBlock(root, entries)
+							_ = genvio.UpsertManagedBlock(root, entries)
 						}
 					}
 				}
@@ -476,7 +476,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 			}
 			def, ok := reg.Consumers[args[0]]
 			if !ok {
-				return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown consumer %q", args[0])}
+				return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown consumer %q", args[0])}
 			}
 			data, _ := json.MarshalIndent(def, "", "  ")
 			emit(flags, def, string(data))
@@ -577,7 +577,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 				return err
 			}
 			if runtime == (cmd.Flags().Changed("value")) {
-				return &core.MenvError{Code: core.ErrValidation, Message: "pass exactly one of --runtime or --value"}
+				return &core.GenvError{Code: core.ErrValidation, Message: "pass exactly one of --runtime or --value"}
 			}
 			reg, err := loadReg()
 			if err != nil {
@@ -599,7 +599,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 		cmd.Flags().StringVar(&vaultName, "vault", "", "vault name")
 		_ = cmd.MarkFlagRequired("vault")
 		cmd.Flags().BoolVar(&runtime, "runtime", false, "the platform provides this name at run/deploy time")
-		cmd.Flags().StringVar(&value, "value", "", "static value menv substitutes at generate time")
+		cmd.Flags().StringVar(&value, "value", "", "static value genv substitutes at generate time")
 		cmd.Flags().StringVar(&desc, "description", "", "")
 		return cmd
 	}
@@ -705,7 +705,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 		}
 		abs := filepath.Join(root, args[0])
 		if _, err := os.Stat(abs); os.IsNotExist(err) {
-			return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("no such file: %s", args[0])}
+			return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("no such file: %s", args[0])}
 		}
 		reg, err := loadReg()
 		if err != nil {
@@ -726,7 +726,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 			} else {
 				envCompose = filepath.Join(dir, ".env.compose")
 			}
-			_ = menvio.UpsertManagedBlock(root, []string{envCompose})
+			_ = genvio.UpsertManagedBlock(root, []string{envCompose})
 		}
 		return nil
 	}})
@@ -995,7 +995,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 		}
 		def, ok := reg.Variables[args[0]]
 		if !ok {
-			return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown variable %q", args[0])}
+			return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown variable %q", args[0])}
 		}
 		data, _ := json.MarshalIndent(def, "", "  ")
 		emit(flags, def, string(data))
@@ -1200,7 +1200,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 					return err
 				}
 				if !found {
-					return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("no value stored for %q in vault %q", args[0], vaultName)}
+					return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("no value stored for %q in vault %q", args[0], vaultName)}
 				}
 				if flags.Mode == ModeJSON {
 					EmitResult(io, ModeJSON, map[string]any{"name": args[0], "vault": vaultName, "value": val}, val)
@@ -1244,7 +1244,7 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 	// ── backup / restore ──────────────────────────────────────────────────
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "backup",
-		Short: "snapshot menv.json, vault files, and generated files into .menv/backups",
+		Short: "snapshot genv.json, vault files, and generated files into .genv/backups",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags, err := getFlags()
@@ -1286,23 +1286,23 @@ func BuildProgram(root string, io Io, newKey func() string) *cobra.Command {
 func runInit(root string, encrypt bool) (map[string]any, error) {
 	regPath := filepath.Join(root, registry.RegistryFilename)
 	if _, err := os.Stat(regPath); err == nil {
-		return nil, &core.MenvError{Code: core.ErrValidation, Message: registry.RegistryFilename + " already exists"}
+		return nil, &core.GenvError{Code: core.ErrValidation, Message: registry.RegistryFilename + " already exists"}
 	}
 	if _, err := os.Stat(filepath.Join(root, "menv.toml")); err == nil {
-		return nil, &core.MenvError{Code: core.ErrValidation, Message: "v1 repo detected (menv.toml) — v2 has no migration; remove the v1 files first"}
+		return nil, &core.GenvError{Code: core.ErrValidation, Message: "legacy menv v1 repo detected (menv.toml) — genv has no migration; remove the v1 files first"}
 	}
 
 	var vaultCfg json.RawMessage
 	if encrypt {
-		vaultCfg, _ = json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": true})
+		vaultCfg, _ = json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": true})
 	} else {
-		vaultCfg, _ = json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": false})
+		vaultCfg, _ = json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": false})
 	}
 	reg := registry.Registry{
 		SchemaVersion: 2,
 		Defaults:      registry.Defaults{Vault: "local"},
 		Vaults: map[string]registry.VaultDef{
-			"local": {VaultType: "menv-local", VaultConfig: vaultCfg},
+			"local": {VaultType: "genv-local", VaultConfig: vaultCfg},
 		},
 		Consumers: map[string]registry.ConsumerDef{},
 		Groups:    map[string]registry.GroupDef{},
@@ -1313,14 +1313,14 @@ func runInit(root string, encrypt bool) (map[string]any, error) {
 	if err := registry.SaveRegistry(root, reg); err != nil {
 		return nil, err
 	}
-	ignores := []string{".menv/auth.local.json", ".menv/backups/"}
+	ignores := []string{".genv/auth.local.json", ".genv/backups/"}
 	if !encrypt {
-		ignores = append(ignores, ".menv/vault.json")
+		ignores = append(ignores, ".genv/vault.json")
 	}
-	if err := menvio.UpsertManagedBlock(root, ignores); err != nil {
+	if err := genvio.UpsertManagedBlock(root, ignores); err != nil {
 		return nil, err
 	}
-	return map[string]any{"created": []string{registry.RegistryFilename, ".gitignore (menv block)"}}, nil
+	return map[string]any{"created": []string{registry.RegistryFilename, ".gitignore (genv block)"}}, nil
 }
 
 func runGenerate(root string, reg registry.Registry, opts generate.GenerateOpts, flags MutationFlags, io Io, promptFn PromptFn) error {
@@ -1368,7 +1368,7 @@ func runGenerate(root string, reg registry.Registry, opts generate.GenerateOpts,
 			for i, e := range cp.Errors {
 				msgs[i] = e.Message
 			}
-			return &core.MenvError{Code: core.ErrValidation, Message: "compose: " + strings.Join(msgs, "; "), Details: cp.Errors}
+			return &core.GenvError{Code: core.ErrValidation, Message: "compose: " + strings.Join(msgs, "; "), Details: cp.Errors}
 		}
 		compRes = composeResult{Writes: cp.Writes, Errors: cp.Errors, Warnings: cp.Warnings}
 	}
@@ -1423,7 +1423,7 @@ func prettyGenerate(result map[string]any, dryRun bool) string {
 		lines = append(lines, "  "+sym+" "+p)
 	}
 	for _, p := range refused {
-		lines = append(lines, "  ! "+p+" (exists without the menv marker — left as is)")
+		lines = append(lines, "  ! "+p+" (exists without the genv marker — left as is)")
 	}
 	for _, w := range warnings {
 		lines = append(lines, "  ⚠ "+w.Code+": "+w.Message)
@@ -1435,12 +1435,12 @@ func runImport(root string, reg registry.Registry, file, consumer, vaultName str
 	absFile := filepath.Join(root, file)
 	data, err := os.ReadFile(absFile)
 	if os.IsNotExist(err) {
-		return &core.MenvError{Code: core.ErrNotFound, Message: "no such file: " + file}
+		return &core.GenvError{Code: core.ErrNotFound, Message: "no such file: " + file}
 	}
 	if err != nil {
 		return err
 	}
-	entries := menvio.ParseDotenv(string(data))
+	entries := genvio.ParseDotenv(string(data))
 	sess, err := OpenVaultSession(root, reg, vaultName, flags, promptFn)
 	if err != nil {
 		return err
@@ -1517,12 +1517,12 @@ func noneOrList(ss []string) string {
 }
 
 func runBackup(root string, reg registry.Registry, flags MutationFlags, io Io) error {
-	key := menvio.BackupKey(time.Now())
+	key := genvio.BackupKey(time.Now())
 
-	// Collect vault filenames for menv-local vaults.
+	// Collect vault filenames for genv-local vaults.
 	var vaultFiles []string
 	for _, def := range reg.Vaults {
-		if def.VaultType != "menv-local" {
+		if def.VaultType != "genv-local" {
 			continue
 		}
 		var cfg struct {
@@ -1572,11 +1572,11 @@ func runBackup(root string, reg registry.Registry, flags MutationFlags, io Io) e
 	}
 	sort.Strings(candidates)
 
-	paths, err := menvio.CollectBackupPaths(root, registry.RegistryFilename, vaultFiles, candidates, generate.HasOwnershipMarker)
+	paths, err := genvio.CollectBackupPaths(root, registry.RegistryFilename, vaultFiles, candidates, generate.HasOwnershipMarker)
 	if err != nil {
 		return err
 	}
-	rel, err := menvio.CreateBackup(root, key, paths)
+	rel, err := genvio.CreateBackup(root, key, paths)
 	if err != nil {
 		return err
 	}
@@ -1586,16 +1586,16 @@ func runBackup(root string, reg registry.Registry, flags MutationFlags, io Io) e
 }
 
 func runRestore(root, key string, flags MutationFlags, io Io) error {
-	keys, err := menvio.ListBackups(root)
+	keys, err := genvio.ListBackups(root)
 	if err != nil {
 		return err
 	}
 	if len(keys) == 0 {
-		return &core.MenvError{Code: core.ErrNotFound, Message: "no backups found"}
+		return &core.GenvError{Code: core.ErrNotFound, Message: "no backups found"}
 	}
 	if key == "" {
 		if !IsTTY() {
-			return &core.MenvError{Code: core.ErrValidation, Message: "restore needs a backup key (no TTY to pick one)"}
+			return &core.GenvError{Code: core.ErrValidation, Message: "restore needs a backup key (no TTY to pick one)"}
 		}
 		key = pickBackup(keys)
 	}
@@ -1607,18 +1607,18 @@ func runRestore(root, key string, flags MutationFlags, io Io) error {
 		}
 	}
 	if !found {
-		return &core.MenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown backup %q (have: %s)", key, strings.Join(keys, ", "))}
+		return &core.GenvError{Code: core.ErrNotFound, Message: fmt.Sprintf("unknown backup %q (have: %s)", key, strings.Join(keys, ", "))}
 	}
 	if !flags.Force {
 		if !IsTTY() {
-			return &core.MenvError{Code: core.ErrValidation, Message: "restore overwrites files — pass --force to proceed without a TTY"}
+			return &core.GenvError{Code: core.ErrValidation, Message: "restore overwrites files — pass --force to proceed without a TTY"}
 		}
 		if !confirmRestore(key) {
 			EmitResult(io, flags.Mode, map[string]any{"restored": []string{}}, "aborted")
 			return nil
 		}
 	}
-	restored, err := menvio.RestoreBackup(root, key)
+	restored, err := genvio.RestoreBackup(root, key)
 	if err != nil {
 		return err
 	}

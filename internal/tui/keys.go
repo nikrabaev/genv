@@ -130,7 +130,7 @@ func helpSections() []struct {
 		{"Global", [][2]string{
 			{"^r", "toggle reveal secrets"},
 			{"g", "generate .env files"},
-			{"c", "run menv check"},
+			{"c", "run genv check"},
 			{"R", "reload from disk"},
 			{"H", "toggle variable layout (matrix / cards)"},
 			{"i", "import a dotenv file"},

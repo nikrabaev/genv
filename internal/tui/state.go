@@ -6,8 +6,8 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/nikrabaev/menv/go/internal/cli"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/cli"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // pane identifies which of the three panes owns the keyboard.
@@ -76,7 +76,7 @@ type App struct {
 	style styles
 	keys  keymap
 
-	loaded bool        // whether a menv.json was found
+	loaded bool        // whether a genv.json was found
 	wizard *initWizard // shown when !loaded
 	reg    registry.Registry
 

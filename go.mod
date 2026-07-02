@@ -1,4 +1,4 @@
-module github.com/nikrabaev/menv/go
+module github.com/nikrabaev/genv
 
 go 1.25.8
 

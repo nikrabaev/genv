@@ -5,18 +5,18 @@ import (
 	"os"
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // MakeRegistry returns a baseline 2-vault, 2-consumer, 1-group registry.
 // Tests mutate copies via field assignment or overrides.
 func MakeRegistry() registry.Registry {
 	localConfig, _ := json.Marshal(map[string]any{
-		"filename":   ".menv/vault.json",
+		"filename":   ".genv/vault.json",
 		"encryption": false,
 	})
 	prodConfig, _ := json.Marshal(map[string]any{
-		"filename":   ".menv/vault.production.json",
+		"filename":   ".genv/vault.production.json",
 		"encryption": false,
 	})
 	return registry.Registry{
@@ -24,11 +24,11 @@ func MakeRegistry() registry.Registry {
 		Defaults:      registry.Defaults{Vault: "local"},
 		Vaults: map[string]registry.VaultDef{
 			"local": {
-				VaultType:   "menv-local",
+				VaultType:   "genv-local",
 				VaultConfig: json.RawMessage(localConfig),
 			},
 			"production": {
-				VaultType:   "menv-local",
+				VaultType:   "genv-local",
 				VaultConfig: json.RawMessage(prodConfig),
 			},
 		},
@@ -61,7 +61,7 @@ func MakeRegistry() registry.Registry {
 // Calls t.Cleanup to remove the directory when the test ends.
 func TmpRepo(t *testing.T, r *registry.Registry) string {
 	t.Helper()
-	dir, err := os.MkdirTemp("", "menv-test-")
+	dir, err := os.MkdirTemp("", "genv-test-")
 	if err != nil {
 		t.Fatalf("TmpRepo: %v", err)
 	}

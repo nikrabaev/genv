@@ -8,12 +8,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/google/uuid"
-	"github.com/nikrabaev/menv/go/internal/cli"
-	"github.com/nikrabaev/menv/go/internal/core"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/internal/tui"
-	_ "github.com/nikrabaev/menv/go/internal/vault/local" // register menv-local provider
+	"github.com/nikrabaev/genv/internal/cli"
+	"github.com/nikrabaev/genv/internal/core"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/internal/tui"
+	_ "github.com/nikrabaev/genv/internal/vault/local" // register genv-local provider
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	ioCtx := cli.ProcessIo()
 
 	cwd, _ := os.Getwd()
-	root, ok := menvio.FindRoot(cwd)
+	root, ok := genvio.FindRoot(cwd)
 	if !ok {
 		root = cwd
 	}
@@ -48,7 +48,7 @@ func main() {
 			reg, err := registry.LoadRegistry(root)
 			loaded := err == nil
 			if err != nil {
-				var me *core.MenvError
+				var me *core.GenvError
 				if !errors.As(err, &me) || me.Code != core.ErrNotFound {
 					return err
 				}
@@ -62,12 +62,12 @@ func main() {
 	})
 
 	if err := program.Execute(); err != nil {
-		var me *core.MenvError
+		var me *core.GenvError
 		if errors.As(err, &me) {
 			cli.EmitError(ioCtx, mode, me)
 			os.Exit(me.ExitCode())
 		}
-		fmt.Fprintf(os.Stderr, "menv: %v\n", err)
+		fmt.Fprintf(os.Stderr, "genv: %v\n", err)
 		os.Exit(2)
 	}
 }

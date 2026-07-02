@@ -9,12 +9,12 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
-// initWizard is shown when no menv.json exists. It picks the vault encryption
+// initWizard is shown when no genv.json exists. It picks the vault encryption
 // mode and runs init, then hands off to the main UI.
 type initWizard struct {
 	form    *huh.Form
@@ -28,7 +28,7 @@ func newInitWizard() *initWizard {
 		huh.NewGroup(
 			huh.NewSelect[bool]().
 				Key("encrypt").
-				Title("Initialize a menv repo").
+				Title("Initialize a genv repo").
 				Description("Choose how the local vault stores values.").
 				Options(
 					huh.NewOption("Encrypted — age passphrase, committable ciphertext", true),
@@ -84,27 +84,27 @@ func (w *initWizard) View(a *App) string {
 	if w.errText != "" {
 		body = a.style.blocker.Render(w.errText) + "\n\n" + body
 	}
-	box := a.style.modal.Render(a.style.modalTitle.Render("menv") + "\n\n" + body)
+	box := a.style.modal.Render(a.style.modalTitle.Render("genv") + "\n\n" + body)
 	return a.center(box)
 }
 
-// runInitTUI mirrors the CLI's init: write menv.json (schemaVersion 2, a single
-// menv-local "local" vault) and the managed .gitignore block.
+// runInitTUI mirrors the CLI's init: write genv.json (schemaVersion 2, a single
+// genv-local "local" vault) and the managed .gitignore block.
 func runInitTUI(root string, encrypt bool) ([]string, error) {
 	regPath := filepath.Join(root, registry.RegistryFilename)
 	if _, err := os.Stat(regPath); err == nil {
-		return nil, &core.MenvError{Code: core.ErrValidation, Message: registry.RegistryFilename + " already exists"}
+		return nil, &core.GenvError{Code: core.ErrValidation, Message: registry.RegistryFilename + " already exists"}
 	}
 	if _, err := os.Stat(filepath.Join(root, "menv.toml")); err == nil {
-		return nil, &core.MenvError{Code: core.ErrValidation, Message: "v1 repo detected (menv.toml) — remove the v1 files first"}
+		return nil, &core.GenvError{Code: core.ErrValidation, Message: "legacy menv v1 repo detected (menv.toml) — genv has no migration; remove the v1 files first"}
 	}
 
-	vaultCfg, _ := json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": encrypt})
+	vaultCfg, _ := json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": encrypt})
 	reg := registry.Registry{
 		SchemaVersion: 2,
 		Defaults:      registry.Defaults{Vault: "local"},
 		Vaults: map[string]registry.VaultDef{
-			"local": {VaultType: "menv-local", VaultConfig: vaultCfg},
+			"local": {VaultType: "genv-local", VaultConfig: vaultCfg},
 		},
 		Consumers: map[string]registry.ConsumerDef{},
 		Groups:    map[string]registry.GroupDef{},
@@ -115,12 +115,12 @@ func runInitTUI(root string, encrypt bool) ([]string, error) {
 	if err := registry.SaveRegistry(root, reg); err != nil {
 		return nil, err
 	}
-	ignores := []string{".menv/auth.local.json", ".menv/backups/"}
+	ignores := []string{".genv/auth.local.json", ".genv/backups/"}
 	if !encrypt {
-		ignores = append(ignores, ".menv/vault.json")
+		ignores = append(ignores, ".genv/vault.json")
 	}
-	if err := menvio.UpsertManagedBlock(root, ignores); err != nil {
+	if err := genvio.UpsertManagedBlock(root, ignores); err != nil {
 		return nil, err
 	}
-	return []string{registry.RegistryFilename, ".gitignore (menv block)"}, nil
+	return []string{registry.RegistryFilename, ".gitignore (genv block)"}, nil
 }

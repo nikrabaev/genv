@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // ConsumerAddInput holds the parameters for PlanConsumerAdd.
@@ -32,7 +32,7 @@ func buildConsumerDef(r registry.Registry, input ConsumerAddInput) (registry.Con
 	switch input.StrategyType {
 	case "single":
 		if input.Filename == "" {
-			return registry.ConsumerDef{}, &core.MenvError{
+			return registry.ConsumerDef{}, &core.GenvError{
 				Code:    core.ErrValidation,
 				Message: "single strategy needs --filename",
 			}
@@ -40,7 +40,7 @@ func buildConsumerDef(r registry.Registry, input ConsumerAddInput) (registry.Con
 		cfg.Filename = input.Filename
 	case "per-vault":
 		if len(input.Filenames) == 0 {
-			return registry.ConsumerDef{}, &core.MenvError{
+			return registry.ConsumerDef{}, &core.GenvError{
 				Code:    core.ErrValidation,
 				Message: "per-vault strategy needs --filenames <vault>=<file>,…",
 			}
@@ -52,7 +52,7 @@ func buildConsumerDef(r registry.Registry, input ConsumerAddInput) (registry.Con
 		}
 		cfg.Filenames = input.Filenames
 	default:
-		return registry.ConsumerDef{}, &core.MenvError{
+		return registry.ConsumerDef{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("unknown strategy type %q (use single or per-vault)", input.StrategyType),
 		}
@@ -66,7 +66,7 @@ func PlanConsumerAdd(r registry.Registry, input ConsumerAddInput) (OpResult, err
 		return OpResult{}, err
 	}
 	if _, exists := r.Consumers[input.Name]; exists {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("consumer %q already exists", input.Name),
 		}
@@ -103,13 +103,13 @@ func PlanConsumerUpdate(r registry.Registry, input ConsumerUpdateInput) (OpResul
 		return OpResult{}, err
 	}
 	if def.StrategyType == "per-vault" && input.Filename != nil {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("%q is per-vault — use --filenames, not --filename", input.Name),
 		}
 	}
 	if def.StrategyType == "single" && len(input.Filenames) > 0 {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("%q is single — use --filename, not --filenames", input.Name),
 		}
@@ -244,7 +244,7 @@ func PlanConsumerRemove(r registry.Registry, input ConsumerRemoveInput) (OpResul
 	for _, vault := range lockedList {
 		plan.Warnings = append(plan.Warnings, core.PlanIssue{
 			Code:    "ORPHANED_KEYS",
-			Message: fmt.Sprintf("vault %q could not be opened — keys orphaned by removing %q remain (menv check will report them)", vault, input.Name),
+			Message: fmt.Sprintf("vault %q could not be opened — keys orphaned by removing %q remain (genv check will report them)", vault, input.Name),
 		})
 	}
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// RegistryOp describes a single mutation to menv.json.
+// RegistryOp describes a single mutation to genv.json.
 type RegistryOp struct {
 	Action  string `json:"action"`  // "set" | "remove"
 	Path    string `json:"path"`    // dotted path, e.g. "variables.DATABASE_URL"
@@ -37,10 +37,10 @@ type PlanIssue struct {
 // execution unless --force; warnings are always surfaced.
 type Plan struct {
 	Registry []RegistryOp `json:"registry"`
-	Vaults   []VaultOp   `json:"vaults"`
-	Files    []FileOp    `json:"files"`
-	Blockers []PlanIssue `json:"blockers"`
-	Warnings []PlanIssue `json:"warnings"`
+	Vaults   []VaultOp    `json:"vaults"`
+	Files    []FileOp     `json:"files"`
+	Blockers []PlanIssue  `json:"blockers"`
+	Warnings []PlanIssue  `json:"warnings"`
 }
 
 // EmptyPlan returns a plan with all slices initialized (not nil).
@@ -103,19 +103,19 @@ type VaultSession interface {
 type ExecuteContext struct {
 	Force          bool
 	Sessions       map[string]VaultSession
-	CommitRegistry func() error // called last; nil = skip
+	CommitRegistry func() error       // called last; nil = skip
 	ApplyFileOp    func(FileOp) error // nil = file ops stay descriptive
 }
 
 // ExecutePlan runs vault ops, then file ops, then commits the registry.
-// A failed vault op leaves orphan keys, which `menv check` will report.
+// A failed vault op leaves orphan keys, which `genv check` will report.
 func ExecutePlan(plan Plan, ctx ExecuteContext) error {
 	if len(plan.Blockers) > 0 && !ctx.Force {
 		parts := make([]string, len(plan.Blockers))
 		for i, b := range plan.Blockers {
 			parts[i] = b.Code + ": " + b.Message
 		}
-		return &MenvError{
+		return &GenvError{
 			Code:    ErrBlocked,
 			Message: "blocked — " + strings.Join(parts, "; ") + " (use --force to override)",
 			Details: plan.Blockers,
@@ -124,7 +124,7 @@ func ExecutePlan(plan Plan, ctx ExecuteContext) error {
 	for _, op := range plan.Vaults {
 		sess, ok := ctx.Sessions[op.Vault]
 		if !ok {
-			return &MenvError{
+			return &GenvError{
 				Code:    ErrVaultIO,
 				Message: fmt.Sprintf("no open session for vault %q", op.Vault),
 			}

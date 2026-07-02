@@ -9,8 +9,8 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/nikrabaev/menv/go/internal/generate"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/generate"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // View implements tea.Model. Alt-screen is requested declaratively (v2 style).
@@ -128,7 +128,7 @@ func clipBlock(s string, w, h int) string {
 }
 
 func (a *App) renderHeader() string {
-	left := a.style.title.Render("menv")
+	left := a.style.title.Render("genv")
 	vault := a.style.muted.Render("vault ") + a.style.subtle.Render(a.activeVault)
 	if !a.vaultUnlocked(a.activeVault) {
 		vault += " " + a.style.badge.Render(glyphLocked)
@@ -536,7 +536,7 @@ func (a *App) renderBackups(w, h int) string {
 	rows := make([]string, len(keys))
 	for i, k := range keys {
 		cursor, ns := a.rowCursor(i)
-		rows[i] = cursor + ns.Render(pad(k, 20)) + a.style.muted.Render(".menv/backups/"+k)
+		rows[i] = cursor + ns.Render(pad(k, 20)) + a.style.muted.Render(".genv/backups/"+k)
 	}
 	return header + "\n" + a.windowBody(rows, a.mainCursor(), h-1)
 }
@@ -790,7 +790,7 @@ func (a *App) inspectCompose() string {
 	var b strings.Builder
 	b.WriteString(a.style.title.Render("compose") + "\n\n")
 	b.WriteString(kv(a, "file", files[i]))
-	b.WriteString("\n" + a.style.muted.Render("menv rewrites only the lines between\n# <menv:consumer> … # </menv> markers."))
+	b.WriteString("\n" + a.style.muted.Render("genv rewrites only the lines between\n# <genv:consumer> … # </genv> markers."))
 	return b.String()
 }
 
@@ -802,7 +802,7 @@ func (a *App) inspectBackup() string {
 	}
 	var b strings.Builder
 	b.WriteString(a.style.title.Render("backup "+keys[i]) + "\n\n")
-	b.WriteString(kv(a, "path", ".menv/backups/"+keys[i]))
+	b.WriteString(kv(a, "path", ".genv/backups/"+keys[i]))
 	b.WriteString("\n" + a.style.muted.Render("⏎ restores this snapshot (overwrites files)."))
 	return b.String()
 }

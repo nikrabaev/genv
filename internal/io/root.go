@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 )
 
-const RegistryFilename = "menv.json"
+const RegistryFilename = "genv.json"
 
-// FindRoot walks from start toward the filesystem root looking for menv.json.
-// Returns the containing directory, or ("", false) when not inside a menv repo.
+// FindRoot walks from start toward the filesystem root looking for genv.json.
+// Returns the containing directory, or ("", false) when not inside a genv repo.
 // `init` treats the cwd as the new root; everything else errors.
 func FindRoot(start string) (string, bool) {
 	dir := start

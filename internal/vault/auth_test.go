@@ -6,21 +6,21 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/vault"
+	"github.com/nikrabaev/genv/internal/vault"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAuthEnvVarName(t *testing.T) {
-	assert.Equal(t, "MENV_VAULT_AUTH_LOCAL", vault.AuthEnvVarName("local"))
-	assert.Equal(t, "MENV_VAULT_AUTH_PROD", vault.AuthEnvVarName("prod"))
-	assert.Equal(t, "MENV_VAULT_AUTH_MY_VAULT", vault.AuthEnvVarName("my-vault"))
-	assert.Equal(t, "MENV_VAULT_AUTH_MY_VAULT", vault.AuthEnvVarName("my.vault"))
+	assert.Equal(t, "GENV_VAULT_AUTH_LOCAL", vault.AuthEnvVarName("local"))
+	assert.Equal(t, "GENV_VAULT_AUTH_PROD", vault.AuthEnvVarName("prod"))
+	assert.Equal(t, "GENV_VAULT_AUTH_MY_VAULT", vault.AuthEnvVarName("my-vault"))
+	assert.Equal(t, "GENV_VAULT_AUTH_MY_VAULT", vault.AuthEnvVarName("my.vault"))
 }
 
 func writeAuthFile(t *testing.T, root string, content map[string]any) {
 	t.Helper()
-	dir := filepath.Join(root, ".menv")
+	dir := filepath.Join(root, ".genv")
 	require.NoError(t, os.MkdirAll(dir, 0700))
 	data, err := json.Marshal(content)
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestResolveVaultAuth_EnvVar(t *testing.T) {
 	tmp := t.TempDir()
 	auth, err := vault.ResolveVaultAuth("local", vault.ResolveAuthOptions{
 		Root: tmp,
-		Env:  map[string]string{"MENV_VAULT_AUTH_LOCAL": "from-env"},
+		Env:  map[string]string{"GENV_VAULT_AUTH_LOCAL": "from-env"},
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "from-env", auth.Secret)
@@ -149,7 +149,7 @@ func TestResolveVaultAuth_FlagTakesPriority(t *testing.T) {
 		Root:    tmp,
 		Flag:    "from-flag",
 		FlagSet: true,
-		Env:     map[string]string{"MENV_VAULT_AUTH_MYVAULT": "from-env"},
+		Env:     map[string]string{"GENV_VAULT_AUTH_MYVAULT": "from-env"},
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "from-flag", auth.Secret)
@@ -174,7 +174,7 @@ func TestResolveVaultAuthOptional_NoAuth(t *testing.T) {
 
 func TestResolveVaultAuthOptional_EnvSet(t *testing.T) {
 	tmp := t.TempDir()
-	auth, err := vault.ResolveVaultAuthOptional("local", tmp, map[string]string{"MENV_VAULT_AUTH_LOCAL": "mysecret"})
+	auth, err := vault.ResolveVaultAuthOptional("local", tmp, map[string]string{"GENV_VAULT_AUTH_LOCAL": "mysecret"})
 	require.NoError(t, err)
 	assert.True(t, auth.HasSecret)
 	assert.Equal(t, "mysecret", auth.Secret)

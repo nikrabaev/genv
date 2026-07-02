@@ -7,20 +7,20 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 var (
-	openRE  = regexp.MustCompile(`^(\s*)#\s*<menv:([a-z0-9][a-z0-9._-]*)>\s*$`)
-	closeRE = regexp.MustCompile(`^\s*#\s*</menv>\s*$`)
+	openRE  = regexp.MustCompile(`^(\s*)#\s*<genv:([a-z0-9][a-z0-9._-]*)>\s*$`)
+	closeRE = regexp.MustCompile(`^\s*#\s*</genv>\s*$`)
 )
 
-// MarkerRegion describes one pair of menv compose markers within a file.
+// MarkerRegion describes one pair of genv compose markers within a file.
 type MarkerRegion struct {
 	Consumer string
-	Start    int    // index of the opening `# <menv:consumer>` line
-	End      int    // index of the closing `# </menv>` line
+	Start    int    // index of the opening `# <genv:consumer>` line
+	End      int    // index of the closing `# </genv>` line
 	Indent   string // leading whitespace of the opening marker
 }
 
@@ -36,14 +36,14 @@ func FindMarkerRegions(content string) (regions []MarkerRegion, errors []string)
 	for i, line := range lines {
 		if m := openRE.FindStringSubmatch(line); m != nil {
 			if open != nil {
-				errors = append(errors, fmt.Sprintf("nested menv marker at line %d", i+1))
+				errors = append(errors, fmt.Sprintf("nested genv marker at line %d", i+1))
 			}
 			open = &openState{consumer: m[2], start: i, indent: m[1]}
 			continue
 		}
 		if closeRE.MatchString(line) {
 			if open == nil {
-				errors = append(errors, fmt.Sprintf("unmatched </menv> at line %d", i+1))
+				errors = append(errors, fmt.Sprintf("unmatched </genv> at line %d", i+1))
 				continue
 			}
 			regions = append(regions, MarkerRegion{
@@ -56,7 +56,7 @@ func FindMarkerRegions(content string) (regions []MarkerRegion, errors []string)
 		}
 	}
 	if open != nil {
-		errors = append(errors, fmt.Sprintf("unclosed <menv:%s> marker", open.consumer))
+		errors = append(errors, fmt.Sprintf("unclosed <genv:%s> marker", open.consumer))
 	}
 	return regions, errors
 }
@@ -154,7 +154,7 @@ func PreviewCompose(
 		if len(regions) == 0 {
 			preview.Warnings = append(preview.Warnings, core.PlanIssue{
 				Code:    "COMPOSE_NO_MARKERS",
-				Message: file + ": bound but has no menv markers",
+				Message: file + ": bound but has no genv markers",
 			})
 		}
 		dir := filepath.Dir(file)

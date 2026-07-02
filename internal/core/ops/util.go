@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // OpResult is the return type of every op planner: the would-be next registry
@@ -109,7 +109,7 @@ func variableNames(r registry.Registry) map[string]struct{} {
 func RequireVault(r registry.Registry, name string) (registry.VaultDef, error) {
 	v, ok := r.Vaults[name]
 	if !ok {
-		return registry.VaultDef{}, &core.MenvError{
+		return registry.VaultDef{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("unknown vault %q (known: %s)", name, knownList(vaultNames(r))),
 		}
@@ -121,7 +121,7 @@ func RequireVault(r registry.Registry, name string) (registry.VaultDef, error) {
 func RequireConsumer(r registry.Registry, name string) (registry.ConsumerDef, error) {
 	c, ok := r.Consumers[name]
 	if !ok {
-		return registry.ConsumerDef{}, &core.MenvError{
+		return registry.ConsumerDef{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("unknown consumer %q (known: %s)", name, knownList(consumerNames(r))),
 		}
@@ -133,7 +133,7 @@ func RequireConsumer(r registry.Registry, name string) (registry.ConsumerDef, er
 func RequireGroup(r registry.Registry, key string) (registry.GroupDef, error) {
 	g, ok := r.Groups[key]
 	if !ok {
-		return registry.GroupDef{}, &core.MenvError{
+		return registry.GroupDef{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("unknown group %q (known: %s)", key, knownList(groupKeys(r))),
 		}
@@ -145,7 +145,7 @@ func RequireGroup(r registry.Registry, key string) (registry.GroupDef, error) {
 func RequireVariable(r registry.Registry, name string) (registry.VariableDef, error) {
 	v, ok := r.Variables[name]
 	if !ok {
-		return registry.VariableDef{}, &core.MenvError{
+		return registry.VariableDef{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("unknown variable %q (known: %s)", name, knownList(variableNames(r))),
 		}
@@ -156,7 +156,7 @@ func RequireVariable(r registry.Registry, name string) (registry.VariableDef, er
 // RequireSlug validates that name matches the slug pattern for kind.
 func RequireSlug(kind, name string) error {
 	if !SlugRE.MatchString(name) {
-		return &core.MenvError{
+		return &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("invalid %s name %q (use a-z 0-9 . _ -)", kind, name),
 		}

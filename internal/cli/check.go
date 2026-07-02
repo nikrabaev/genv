@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/generate"
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/internal/vault"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/generate"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/internal/vault"
 )
 
 // Finding is one item in the check report.
@@ -59,7 +59,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 			var err error
 			resolved, err = vault.ResolveVaultAuthOptional(vaultName, root, osEnv())
 			if err != nil {
-				var me *core.MenvError
+				var me *core.GenvError
 				if errors.As(err, &me) && (me.Code == core.ErrAuthMissing || me.Code == core.ErrAuthFailed) {
 					findings = append(findings, warnFinding("UNVERIFIED_VAULT", `vault "`+vaultName+`" could not be opened — checks against it skipped`))
 					continue
@@ -73,7 +73,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 		}
 		sess, err := p.Init(def.VaultConfig, vault.VaultInitContext{Root: root, Auth: resolved})
 		if err != nil {
-			var me *core.MenvError
+			var me *core.GenvError
 			if errors.As(err, &me) && (me.Code == core.ErrAuthMissing || me.Code == core.ErrAuthFailed) {
 				findings = append(findings, warnFinding("UNVERIFIED_VAULT", `vault "`+vaultName+`" could not be opened — checks against it skipped`))
 				continue
@@ -93,7 +93,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 		var warnings []core.PlanIssue
 		_, err := generate.ScopeEntries(reg, target.Consumer, target.Vault, sess, &warnings)
 		if err != nil {
-			var me *core.MenvError
+			var me *core.GenvError
 			if errors.As(err, &me) {
 				findings = append(findings, errFinding("INTERPOLATION", target.Consumer+"/"+target.Vault+": "+me.Message))
 				interpolationFailed[target.Consumer+"|"+target.Vault] = true
@@ -124,7 +124,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 			}
 			content := string(data)
 			if !generate.HasOwnershipMarker(content) {
-				findings = append(findings, errFinding("FOREIGN_FILE", rel+" exists but is not menv-managed (no marker)"))
+				findings = append(findings, errFinding("FOREIGN_FILE", rel+" exists but is not genv-managed (no marker)"))
 				continue
 			}
 			vaultName := generate.HeaderVault(content)
@@ -148,7 +148,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 				}
 				p, err := generate.PreviewGenerate(root, reg, generate.GenerateOpts{Consumer: consumerName, Vault: vaultName}, sessions)
 				if err != nil {
-					var me *core.MenvError
+					var me *core.GenvError
 					if errors.As(err, &me) {
 						if !interpolationFailed[cacheKey] {
 							findings = append(findings, errFinding("INTERPOLATION", consumerName+"/"+vaultName+": "+me.Message))
@@ -182,7 +182,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 			findings = append(findings, errFinding("COMPOSE_MARKER", cfile+": "+e))
 		}
 		if len(regions) == 0 {
-			findings = append(findings, warnFinding("COMPOSE_NO_MARKERS", cfile+": bound but has no menv markers"))
+			findings = append(findings, warnFinding("COMPOSE_NO_MARKERS", cfile+": bound but has no genv markers"))
 		}
 		for _, r := range regions {
 			if _, ok := reg.Consumers[r.Consumer]; !ok {
@@ -204,7 +204,7 @@ func CollectFindings(root string, reg registry.Registry, auth MutationFlags) ([]
 			if err := unmarshalJSON(def.VaultConfig, &cfg); err != nil {
 				continue
 			}
-			if def.VaultType == "menv-local" && !cfg.Encryption && cfg.Filename != "" && tracked[cfg.Filename] {
+			if def.VaultType == "genv-local" && !cfg.Encryption && cfg.Filename != "" && tracked[cfg.Filename] {
 				findings = append(findings, errFinding("PLAINTEXT_VAULT_TRACKED",
 					`plaintext vault "`+vaultName+`" file `+cfg.Filename+` is tracked by git`))
 			}
@@ -313,7 +313,7 @@ func RunCheck(root string, reg registry.Registry, flags MutationFlags, io Io) er
 		if flags.Mode == ModePretty {
 			io.Stdout(pretty + "\n")
 		}
-		return &core.MenvError{
+		return &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: formatCheckError(errCount),
 			Details: findings,

@@ -9,8 +9,8 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/tests/helpers"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/tests/helpers"
 )
 
 // keyMsg builds a v2 KeyPressMsg whose String() matches s for the keys the TUI
@@ -77,7 +77,7 @@ func newTestApp() *App {
 	return a
 }
 
-const t_tmp = "/tmp/menv-tui-test-nonexistent"
+const t_tmp = "/tmp/genv-tui-test-nonexistent"
 
 // render asserts the View renders to non-empty content without panicking.
 func render(t *testing.T, a *App, ctx string) string {
@@ -99,8 +99,8 @@ func press(a *App, s string) {
 func TestRendersAllTabsAndPanes(t *testing.T) {
 	a := newTestApp()
 	out := render(t, a, "initial")
-	if !strings.Contains(out, "menv") {
-		t.Fatalf("header missing 'menv': %q", out[:min(200, len(out))])
+	if !strings.Contains(out, "genv") {
+		t.Fatalf("header missing 'genv': %q", out[:min(200, len(out))])
 	}
 	for _, tab := range []string{"globals", "groups", "compose", "backups", "variables"} {
 		press(a, "]")
@@ -292,8 +292,8 @@ func TestInitWizardRenders(t *testing.T) {
 		t.Fatal("wizard should be active when no registry is loaded")
 	}
 	out := render(t, a, "wizard")
-	if !strings.Contains(out, "menv") {
-		t.Errorf("wizard should render the menv title")
+	if !strings.Contains(out, "genv") {
+		t.Errorf("wizard should render the genv title")
 	}
 }
 

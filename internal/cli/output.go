@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
+	"github.com/nikrabaev/genv/internal/core"
 )
 
 // OutputMode controls how results are emitted.
@@ -39,7 +39,7 @@ func ResolveMode(flag string) (OutputMode, error) {
 	case "json":
 		return ModeJSON, nil
 	default:
-		return "", &core.MenvError{
+		return "", &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("invalid output mode %q (pretty | json)", flag),
 		}
@@ -60,7 +60,7 @@ func EmitResult(io Io, mode OutputMode, result any, pretty string) {
 }
 
 // EmitError writes an error in the appropriate output mode.
-func EmitError(io Io, mode OutputMode, e *core.MenvError) {
+func EmitError(io Io, mode OutputMode, e *core.GenvError) {
 	if mode == ModeJSON {
 		data, _ := json.Marshal(map[string]any{
 			"ok": false,
@@ -73,7 +73,7 @@ func EmitError(io Io, mode OutputMode, e *core.MenvError) {
 		io.Stdout(string(data) + "\n")
 		return
 	}
-	io.Stderr("menv: " + e.Message + "\n")
+	io.Stderr("genv: " + e.Message + "\n")
 }
 
 // PeekJSONMode inspects raw argv for --output=json before full parsing.

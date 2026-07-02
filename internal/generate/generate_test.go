@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/generate"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/generate"
+	"github.com/nikrabaev/genv/internal/registry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -127,7 +127,7 @@ func TestRenderExampleContent(t *testing.T) {
 // --- compose markers ---
 
 func TestFindMarkerRegions_Simple(t *testing.T) {
-	content := "version: '3'\nservices:\n  api:\n    env_file:\n    # <menv:api>\n    # </menv>\n"
+	content := "version: '3'\nservices:\n  api:\n    env_file:\n    # <genv:api>\n    # </genv>\n"
 	regions, errs := generate.FindMarkerRegions(content)
 	assert.Empty(t, errs)
 	require.Len(t, regions, 1)
@@ -135,28 +135,28 @@ func TestFindMarkerRegions_Simple(t *testing.T) {
 }
 
 func TestFindMarkerRegions_NestedError(t *testing.T) {
-	content := "# <menv:api>\n# <menv:web>\n# </menv>\n"
+	content := "# <genv:api>\n# <genv:web>\n# </genv>\n"
 	_, errs := generate.FindMarkerRegions(content)
 	assert.NotEmpty(t, errs)
 	assert.Contains(t, errs[0], "nested")
 }
 
 func TestFindMarkerRegions_UnmatchedClose(t *testing.T) {
-	content := "# </menv>\n"
+	content := "# </genv>\n"
 	_, errs := generate.FindMarkerRegions(content)
 	assert.NotEmpty(t, errs)
 	assert.Contains(t, errs[0], "unmatched")
 }
 
 func TestFindMarkerRegions_UnclosedOpen(t *testing.T) {
-	content := "# <menv:api>\n"
+	content := "# <genv:api>\n"
 	_, errs := generate.FindMarkerRegions(content)
 	assert.NotEmpty(t, errs)
 	assert.Contains(t, errs[0], "unclosed")
 }
 
 func TestSpliceRegions(t *testing.T) {
-	content := "before\n# <menv:api>\nold\n# </menv>\nafter"
+	content := "before\n# <genv:api>\nold\n# </genv>\nafter"
 	regions, _ := generate.FindMarkerRegions(content)
 	require.Len(t, regions, 1)
 	fill := map[int][]string{regions[0].Start: {"    - FOO=${API_FOO}"}}
@@ -212,17 +212,17 @@ func (m *mockSession) Get(key string) (string, bool, error) {
 	v, ok := m.store[key]
 	return v, ok, nil
 }
-func (m *mockSession) Set(key, value string) error      { m.store[key] = value; return nil }
-func (m *mockSession) Remove(key string) error          { delete(m.store, key); return nil }
-func (m *mockSession) List() ([]string, error)          { return nil, nil }
-func (m *mockSession) Close() error                     { return nil }
+func (m *mockSession) Set(key, value string) error { m.store[key] = value; return nil }
+func (m *mockSession) Remove(key string) error     { delete(m.store, key); return nil }
+func (m *mockSession) List() ([]string, error)     { return nil, nil }
+func (m *mockSession) Close() error                { return nil }
 
 func makeTestRegistry() registry.Registry {
 	return registry.Registry{
 		SchemaVersion: 2,
 		Defaults:      registry.Defaults{Vault: "local"},
 		Vaults: map[string]registry.VaultDef{
-			"local": {VaultType: "menv-local"},
+			"local": {VaultType: "genv-local"},
 		},
 		Consumers: map[string]registry.ConsumerDef{
 			"api": {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // PlanGroupAdd registers a new group.
@@ -14,7 +14,7 @@ func PlanGroupAdd(r registry.Registry, input struct{ Key, Title string }) (OpRes
 		return OpResult{}, err
 	}
 	if _, exists := r.Groups[input.Key]; exists {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("group %q already exists", input.Key),
 		}

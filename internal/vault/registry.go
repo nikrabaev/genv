@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
+	"github.com/nikrabaev/genv/internal/core"
 )
 
 var providers = map[string]VaultProvider{}
@@ -32,7 +32,7 @@ func GetProvider(vaultType string) (VaultProvider, error) {
 	p, ok := providers[vaultType]
 	if !ok {
 		known := KnownProviderTypes()
-		return nil, &core.MenvError{
+		return nil, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("unknown vaultType %q (known: %s)", vaultType, joinStr(known, ", ")),
 		}

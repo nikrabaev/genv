@@ -1,4 +1,4 @@
-// Package tui is a from-scratch terminal UI for menv built on the Charm v2
+// Package tui is a from-scratch terminal UI for genv built on the Charm v2
 // stack: bubbletea (Elm architecture), lipgloss (layout/styling), bubbles
 // (components) and huh (forms). It is a thin, stateful front-end over the
 // pure domain in internal/core, internal/registry, internal/vault and
@@ -7,7 +7,7 @@
 package tui
 
 import (
-	"github.com/nikrabaev/menv/go/internal/cli"
+	"github.com/nikrabaev/genv/internal/cli"
 )
 
 // TuiContext carries the process-level handles the TUI needs. Auth holds

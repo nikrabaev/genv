@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // VaultAddInput holds the parameters for PlanVaultAdd.
@@ -22,7 +22,7 @@ func PlanVaultAdd(r registry.Registry, input VaultAddInput) (OpResult, error) {
 		return OpResult{}, err
 	}
 	if _, exists := r.Vaults[input.Name]; exists {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("vault %q already exists", input.Name),
 		}
@@ -101,9 +101,9 @@ func PlanVaultRemove(r registry.Registry, input struct{ Name string }) (OpResult
 		return OpResult{}, err
 	}
 	if r.Defaults.Vault == input.Name {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
-			Message: fmt.Sprintf("%q is the default vault — set another default first (menv vault update <name> --default)", input.Name),
+			Message: fmt.Sprintf("%q is the default vault — set another default first (genv vault update <name> --default)", input.Name),
 		}
 	}
 

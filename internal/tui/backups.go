@@ -6,19 +6,19 @@ import (
 	"sort"
 	"time"
 
-	"github.com/nikrabaev/menv/go/internal/generate"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/generate"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
-// makeBackup mirrors the CLI's backup: snapshot menv.json, menv-local vault
-// files, and every menv-owned generated file (plus .env.compose siblings).
+// makeBackup mirrors the CLI's backup: snapshot genv.json, genv-local vault
+// files, and every genv-owned generated file (plus .env.compose siblings).
 func makeBackup(root string, reg registry.Registry) (string, []string, error) {
-	key := menvio.BackupKey(time.Now())
+	key := genvio.BackupKey(time.Now())
 
 	var vaultFiles []string
 	for _, def := range reg.Vaults {
-		if def.VaultType != "menv-local" {
+		if def.VaultType != "genv-local" {
 			continue
 		}
 		var cfg struct {
@@ -65,11 +65,11 @@ func makeBackup(root string, reg registry.Registry) (string, []string, error) {
 	}
 	sort.Strings(candList)
 
-	paths, err := menvio.CollectBackupPaths(root, registry.RegistryFilename, vaultFiles, candList, generate.HasOwnershipMarker)
+	paths, err := genvio.CollectBackupPaths(root, registry.RegistryFilename, vaultFiles, candList, generate.HasOwnershipMarker)
 	if err != nil {
 		return "", nil, err
 	}
-	if _, err := menvio.CreateBackup(root, key, paths); err != nil {
+	if _, err := genvio.CreateBackup(root, key, paths); err != nil {
 		return "", nil, err
 	}
 	return key, paths, nil

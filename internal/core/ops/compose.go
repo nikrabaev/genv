@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // PlanComposeBind registers a compose file in the registry.
 func PlanComposeBind(r registry.Registry, input struct{ File string }) (OpResult, error) {
 	for _, f := range r.Compose.Files {
 		if f == input.File {
-			return OpResult{}, &core.MenvError{
+			return OpResult{}, &core.GenvError{
 				Code:    core.ErrValidation,
 				Message: fmt.Sprintf("%q is already bound", input.File),
 			}
@@ -43,7 +43,7 @@ func PlanComposeUnbind(r registry.Registry, input struct{ File string }) (OpResu
 		if bound == "" {
 			bound = "none"
 		}
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("%q is not bound (bound: %s)", input.File, bound),
 		}

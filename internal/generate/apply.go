@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
+	"github.com/nikrabaev/genv/internal/core"
+	genvio "github.com/nikrabaev/genv/internal/io"
 )
 
 // ApplyFileOp applies a release or delete FileOp under the ownership rule.
@@ -28,7 +28,7 @@ func ApplyFileOp(root string, op core.FileOp) error {
 	}
 	if op.Action == "release" {
 		stripped := StripDisclaimer(string(data))
-		return menvio.WriteFileAtomic(root, op.Path, []byte(stripped))
+		return genvio.WriteFileAtomic(root, op.Path, []byte(stripped))
 	}
 	// delete
 	return os.Remove(abs)
@@ -37,7 +37,7 @@ func ApplyFileOp(root string, op core.FileOp) error {
 // ApplyPreview writes all files in the preview to disk.
 func ApplyPreview(root string, preview GeneratePreview) error {
 	for _, w := range preview.Writes {
-		if err := menvio.WriteFileAtomic(root, w.Path, []byte(w.Content)); err != nil {
+		if err := genvio.WriteFileAtomic(root, w.Path, []byte(w.Content)); err != nil {
 			return err
 		}
 	}

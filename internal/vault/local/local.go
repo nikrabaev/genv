@@ -9,9 +9,9 @@ import (
 	"sort"
 
 	"filippo.io/age"
-	"github.com/nikrabaev/menv/go/internal/core"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/vault"
+	"github.com/nikrabaev/genv/internal/core"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/vault"
 )
 
 func init() {
@@ -26,10 +26,10 @@ type localConfig struct {
 func parseConfig(raw json.RawMessage) (localConfig, error) {
 	var cfg localConfig
 	if err := json.Unmarshal(raw, &cfg); err != nil {
-		return localConfig{}, &core.MenvError{Code: core.ErrValidation, Message: "menv-local: vaultConfig is not valid JSON"}
+		return localConfig{}, &core.GenvError{Code: core.ErrValidation, Message: "genv-local: vaultConfig is not valid JSON"}
 	}
 	if cfg.Filename == "" {
-		return localConfig{}, &core.MenvError{Code: core.ErrValidation, Message: "menv-local: vaultConfig.filename must be a non-empty string"}
+		return localConfig{}, &core.GenvError{Code: core.ErrValidation, Message: "genv-local: vaultConfig.filename must be a non-empty string"}
 	}
 	return cfg, nil
 }
@@ -37,13 +37,13 @@ func parseConfig(raw json.RawMessage) (localConfig, error) {
 func parseStore(data []byte, filename string) (map[string]string, error) {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("menv-local: %s is not valid JSON", filename)}
+		return nil, &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("genv-local: %s is not valid JSON", filename)}
 	}
 	store := make(map[string]string, len(raw))
 	for k, v := range raw {
 		var s string
 		if err := json.Unmarshal(v, &s); err != nil {
-			return nil, &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("menv-local: %s key %q holds a non-string value", filename, k)}
+			return nil, &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("genv-local: %s key %q holds a non-string value", filename, k)}
 		}
 		store[k] = s
 	}
@@ -92,12 +92,12 @@ func loadStore(cfg localConfig, ctx vault.VaultInitContext) (map[string]string, 
 		return map[string]string{}, nil
 	}
 	if err != nil {
-		return nil, &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("menv-local: could not read %s: %v", cfg.Filename, err)}
+		return nil, &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("genv-local: could not read %s: %v", cfg.Filename, err)}
 	}
 	if cfg.Encryption {
 		plain, err := decryptAge(data, ctx.Auth.Secret)
 		if err != nil {
-			return nil, &core.MenvError{Code: core.ErrAuthFailed, Message: fmt.Sprintf("menv-local: could not decrypt %s (wrong key?)", cfg.Filename)}
+			return nil, &core.GenvError{Code: core.ErrAuthFailed, Message: fmt.Sprintf("genv-local: could not decrypt %s (wrong key?)", cfg.Filename)}
 		}
 		return parseStore(plain, cfg.Filename)
 	}
@@ -134,14 +134,14 @@ func persistStore(cfg localConfig, ctx vault.VaultInitContext, store map[string]
 	if cfg.Encryption {
 		enc, err := encryptAge(ordered, ctx.Auth.Secret)
 		if err != nil {
-			return &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("menv-local: could not encrypt %s: %v", cfg.Filename, err)}
+			return &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("genv-local: could not encrypt %s: %v", cfg.Filename, err)}
 		}
 		payload = enc
 	} else {
 		payload = ordered
 	}
-	if err := menvio.WriteFileAtomic(ctx.Root, cfg.Filename, payload); err != nil {
-		return &core.MenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("menv-local: could not write %s: %v", cfg.Filename, err)}
+	if err := genvio.WriteFileAtomic(ctx.Root, cfg.Filename, payload); err != nil {
+		return &core.GenvError{Code: core.ErrVaultIO, Message: fmt.Sprintf("genv-local: could not write %s: %v", cfg.Filename, err)}
 	}
 	return nil
 }
@@ -195,12 +195,12 @@ func (s *session) List() ([]string, error) {
 
 func (s *session) Close() error { return nil }
 
-// Provider is the menv-local vault provider.
+// Provider is the genv-local vault provider.
 var Provider vault.VaultProvider = &localProvider{}
 
 type localProvider struct{}
 
-func (localProvider) Type() string { return "menv-local" }
+func (localProvider) Type() string { return "genv-local" }
 
 func (localProvider) Init(config json.RawMessage, ctx vault.VaultInitContext) (core.VaultSession, error) {
 	cfg, err := parseConfig(config)
@@ -208,9 +208,9 @@ func (localProvider) Init(config json.RawMessage, ctx vault.VaultInitContext) (c
 		return nil, err
 	}
 	if cfg.Encryption && !ctx.Auth.HasSecret {
-		return nil, &core.MenvError{
+		return nil, &core.GenvError{
 			Code:    core.ErrAuthMissing,
-			Message: fmt.Sprintf("menv-local: %s is encrypted and no key was provided", cfg.Filename),
+			Message: fmt.Sprintf("genv-local: %s is encrypted and no key was provided", cfg.Filename),
 		}
 	}
 	store, err := loadStore(cfg, ctx)

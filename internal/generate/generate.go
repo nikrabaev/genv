@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // GenerateOpts selects which consumers/vaults to generate for.
@@ -23,10 +23,10 @@ type FileWrite struct {
 
 // GeneratePreview is the result of a preview pass.
 type GeneratePreview struct {
-	Writes   []FileWrite
+	Writes    []FileWrite
 	Unchanged []string
-	Refused  []string         // files without the ownership marker that would be overwritten
-	Warnings []core.PlanIssue
+	Refused   []string // files without the ownership marker that would be overwritten
+	Warnings  []core.PlanIssue
 }
 
 // GlobalsFor builds the globals map for a given vault.

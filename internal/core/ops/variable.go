@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // VarDefineInput holds the parameters for planVarDefine.
@@ -20,15 +20,15 @@ type VarDefineInput struct {
 // PlanVarDefine creates a new variable definition in the registry.
 func PlanVarDefine(r registry.Registry, input VarDefineInput) (OpResult, error) {
 	if !NameRE.MatchString(input.Name) {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("invalid variable name %q (env-var style)", input.Name),
 		}
 	}
 	if _, exists := r.Variables[input.Name]; exists {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
-			Message: fmt.Sprintf("variable %q already exists — use `menv var update`", input.Name),
+			Message: fmt.Sprintf("variable %q already exists — use `genv var update`", input.Name),
 		}
 	}
 	if input.GroupKey != "" {
@@ -67,7 +67,7 @@ type VarUpdateInput struct {
 	Name        string
 	GroupKey    string // empty = no change (unless ClearGroup)
 	ClearGroup  bool
-	Secret      *bool  // nil = no change
+	Secret      *bool   // nil = no change
 	Description *string // nil = no change
 	Example     *string // nil = no change
 }
@@ -122,10 +122,10 @@ func PlanVarUpdate(r registry.Registry, input VarUpdateInput) (OpResult, error) 
 
 // VarRemoveInput holds the parameters for PlanVarRemove.
 type VarRemoveInput struct {
-	Name      string
-	Records   []core.ValueRecord // collected from opened vaults
+	Name       string
+	Records    []core.ValueRecord // collected from opened vaults
 	Unverified []string           // vaults that could not be opened
-	Openable  map[string]bool
+	Openable   map[string]bool
 }
 
 // PlanVarRemove removes a variable and its vault keys.
@@ -183,7 +183,7 @@ func PlanVarRemove(r registry.Registry, input VarRemoveInput) (OpResult, error) 
 	for vault := range lockedWithOrphans {
 		plan.Warnings = append(plan.Warnings, core.PlanIssue{
 			Code:    "ORPHANED_KEYS",
-			Message: fmt.Sprintf("vault %q could not be opened — keys for %q remain (menv check will report them)", vault, input.Name),
+			Message: fmt.Sprintf("vault %q could not be opened — keys for %q remain (genv check will report them)", vault, input.Name),
 		})
 	}
 

@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	gitignoreBegin = "# menv (managed block)"
-	gitignoreEnd   = "# end menv"
+	gitignoreBegin = "# genv (managed block)"
+	gitignoreEnd   = "# end genv"
 )
 
-// UpsertManagedBlock idempotently maintains menv's block in .gitignore.
+// UpsertManagedBlock idempotently maintains genv's block in .gitignore.
 // Entries are unioned (set semantics, original order kept); lines outside
 // the block are left untouched.
 func UpsertManagedBlock(root string, entries []string) error {

@@ -6,12 +6,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/nikrabaev/menv/go/internal/cli"
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/core/ops"
-	"github.com/nikrabaev/menv/go/internal/generate"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/cli"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/generate"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // ── apply pipeline ──────────────────────────────────────────────────────────
@@ -246,7 +246,7 @@ func (a *App) genPreviewCmd() tea.Cmd {
 				for i, e := range cp.Errors {
 					msgs[i] = e.Message
 				}
-				return genPreviewMsg{err: &core.MenvError{Code: core.ErrValidation, Message: "compose: " + strings.Join(msgs, "; ")}}
+				return genPreviewMsg{err: &core.GenvError{Code: core.ErrValidation, Message: "compose: " + strings.Join(msgs, "; ")}}
 			}
 			for _, w := range cp.Writes {
 				all = append(all, writeOp{path: w.Path, content: w.Content})
@@ -293,7 +293,7 @@ func (a *App) createBackupCmd() tea.Cmd {
 func (a *App) restoreBackupCmd(key string) tea.Cmd {
 	root := a.ctx.Root
 	return func() tea.Msg {
-		restored, err := menvio.RestoreBackup(root, key)
+		restored, err := genvio.RestoreBackup(root, key)
 		return restoredMsg{count: len(restored), err: err}
 	}
 }

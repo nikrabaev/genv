@@ -13,10 +13,10 @@ import (
 	"charm.land/huh/v2"
 	"github.com/google/uuid"
 
-	"github.com/nikrabaev/menv/go/internal/core/ops"
-	"github.com/nikrabaev/menv/go/internal/generate"
-	menvio "github.com/nikrabaev/menv/go/internal/io"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/generate"
+	genvio "github.com/nikrabaev/genv/internal/io"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 func newKey() string { return uuid.New().String() }
@@ -83,10 +83,10 @@ func (a *App) groupOptions() []huh.Option[string] {
 // ── vault ───────────────────────────────────────────────────────────────────
 
 func (a *App) addVaultFlow() tea.Cmd {
-	name, filename, encrypt := "", ".menv/vault.json", true
+	name, filename, encrypt := "", ".genv/vault.json", true
 	onSubmit := func(a *App) tea.Cmd {
 		op, err := ops.PlanVaultAdd(a.reg, ops.VaultAddInput{
-			Name: name, VaultType: "menv-local",
+			Name: name, VaultType: "genv-local",
 			VaultConfig: map[string]any{"filename": filename, "encryption": encrypt},
 		})
 		if err != nil {
@@ -96,7 +96,7 @@ func (a *App) addVaultFlow() tea.Cmd {
 		var post func(root string) error
 		if !encrypt {
 			fn := filename
-			post = func(root string) error { return menvio.UpsertManagedBlock(root, []string{fn}) }
+			post = func(root string) error { return genvio.UpsertManagedBlock(root, []string{fn}) }
 		}
 		return a.pushPlanPost("Add vault "+name, "added vault", op, post)
 	}
@@ -128,7 +128,7 @@ func (a *App) editVaultFlow(name string) tea.Cmd {
 		var post func(root string) error
 		if !encrypt {
 			fn := filename
-			post = func(root string) error { return menvio.UpsertManagedBlock(root, []string{fn}) }
+			post = func(root string) error { return genvio.UpsertManagedBlock(root, []string{fn}) }
 		}
 		return a.pushPlanPost("Edit vault "+name, "updated vault", op, post)
 	}
@@ -245,7 +245,7 @@ func consumerGitignorePost(next registry.Registry, name string) func(root string
 	if len(entries) == 0 {
 		return nil
 	}
-	return func(root string) error { return menvio.UpsertManagedBlock(root, entries) }
+	return func(root string) error { return genvio.UpsertManagedBlock(root, entries) }
 }
 
 func (a *App) removeConsumerFlow(name string) tea.Cmd {
@@ -428,7 +428,7 @@ func (a *App) bindComposeFlow() tea.Cmd {
 		if dir != "." {
 			envCompose = filepath.Join(dir, ".env.compose")
 		}
-		post := func(root string) error { return menvio.UpsertManagedBlock(root, []string{envCompose}) }
+		post := func(root string) error { return genvio.UpsertManagedBlock(root, []string{envCompose}) }
 		return a.pushPlanPost("Bind compose "+file, "bound compose", op, post)
 	}
 	g := huh.NewGroup(huh.NewInput().Key("file").Title("Compose file path").Value(&file).Validate(required))
@@ -714,7 +714,7 @@ func (a *App) importFlow() tea.Cmd {
 				a.setStatus(statusErr, "cannot read "+file)
 				return nil
 			}
-			entries := menvio.ParseDotenv(string(data))
+			entries := genvio.ParseDotenv(string(data))
 			cur := map[string]string{}
 			rt := a.vaults[vault]
 			for _, e := range entries {

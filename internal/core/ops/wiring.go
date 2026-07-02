@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/registry"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/registry"
 )
 
 // WireInput holds the parameters for PlanWire.
@@ -14,7 +14,7 @@ type WireInput struct {
 	Vault         string
 	Consumers     []string
 	Shared        bool
-	Key           string   // non-empty = re-key consumers onto this existing key
+	Key           string // non-empty = re-key consumers onto this existing key
 	NewKey        func() string
 	RemoveOrphans bool
 	Openable      map[string]bool
@@ -34,7 +34,7 @@ func PlanWire(r registry.Registry, input WireInput) (OpResult, error) {
 		}
 	}
 	if input.Shared && input.Key != "" {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: "--shared and --key are mutually exclusive",
 		}
@@ -56,7 +56,7 @@ func PlanWire(r registry.Registry, input WireInput) (OpResult, error) {
 	}
 	if !rekeying && len(already) > 0 {
 		sort.Strings(already)
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("%q is already wired to %s in vault %q (unwire first)", input.Name, joinComma(already), input.Vault),
 		}
@@ -165,7 +165,7 @@ func PlanUnwire(r registry.Registry, input UnwireInput) (OpResult, error) {
 	}
 	if len(missing) > 0 {
 		sort.Strings(missing)
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrValidation,
 			Message: fmt.Sprintf("%q is not wired to %s in vault %q", input.Name, joinComma(missing), input.Vault),
 		}
@@ -271,7 +271,7 @@ func PlanSetDisabled(r registry.Registry, input SetDisabledInput) (OpResult, err
 	}
 	entry, ok := def.VaultMapping[input.Vault][input.Consumer]
 	if !ok {
-		return OpResult{}, &core.MenvError{
+		return OpResult{}, &core.GenvError{
 			Code:    core.ErrNotFound,
 			Message: fmt.Sprintf("%q is not wired to %q in vault %q", input.Name, input.Consumer, input.Vault),
 		}
@@ -316,7 +316,7 @@ func collectOrphan(plan *core.Plan, vault, key, name string, removeOrphans bool,
 	} else {
 		plan.Warnings = append(plan.Warnings, core.PlanIssue{
 			Code:    "ORPHANED_KEYS",
-			Message: fmt.Sprintf("vault %q could not be opened — orphaned key %q remains (menv check will report it)", vault, key),
+			Message: fmt.Sprintf("vault %q could not be opened — orphaned key %q remains (genv check will report it)", vault, key),
 		})
 	}
 }

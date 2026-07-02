@@ -2,7 +2,7 @@ package registry
 
 import "encoding/json"
 
-// The shape of menv.json (schemaVersion 2). The registry never contains a
+// The shape of genv.json (schemaVersion 2). The registry never contains a
 // value: values live in vaults, addressed by the keys in vaultMapping.
 
 type VaultName = string
@@ -41,7 +41,7 @@ type GlobalValueDef struct {
 }
 
 type GlobalDef struct {
-	Description string                    `json:"description,omitempty"`
+	Description string                       `json:"description,omitempty"`
 	Values      map[VaultName]GlobalValueDef `json:"values"`
 }
 
@@ -51,11 +51,11 @@ type MappingEntry struct {
 }
 
 type VariableDef struct {
-	GroupKey     string                                       `json:"groupKey,omitempty"`
-	Secret       bool                                         `json:"secret,omitempty"`
-	Description  string                                       `json:"description,omitempty"`
-	Example      string                                       `json:"example,omitempty"`
-	VaultMapping map[VaultName]map[ConsumerName]MappingEntry  `json:"vaultMapping"`
+	GroupKey     string                                      `json:"groupKey,omitempty"`
+	Secret       bool                                        `json:"secret,omitempty"`
+	Description  string                                      `json:"description,omitempty"`
+	Example      string                                      `json:"example,omitempty"`
+	VaultMapping map[VaultName]map[ConsumerName]MappingEntry `json:"vaultMapping"`
 }
 
 type Defaults struct {
@@ -67,12 +67,12 @@ type Compose struct {
 }
 
 type Registry struct {
-	SchemaVersion int                           `json:"schemaVersion"`
-	Defaults      Defaults                      `json:"defaults"`
-	Vaults        map[VaultName]VaultDef        `json:"vaults"`
-	Consumers     map[ConsumerName]ConsumerDef  `json:"consumers"`
-	Groups        map[GroupKey]GroupDef         `json:"groups"`
-	Globals       map[string]GlobalDef          `json:"globals"`
-	Variables     map[VariableName]VariableDef  `json:"variables"`
-	Compose       Compose                       `json:"compose"`
+	SchemaVersion int                          `json:"schemaVersion"`
+	Defaults      Defaults                     `json:"defaults"`
+	Vaults        map[VaultName]VaultDef       `json:"vaults"`
+	Consumers     map[ConsumerName]ConsumerDef `json:"consumers"`
+	Groups        map[GroupKey]GroupDef        `json:"groups"`
+	Globals       map[string]GlobalDef         `json:"globals"`
+	Variables     map[VariableName]VariableDef `json:"variables"`
+	Compose       Compose                      `json:"compose"`
 }

@@ -3,10 +3,10 @@ package ops_test
 import (
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/core/ops"
-	"github.com/nikrabaev/menv/go/internal/registry"
-	"github.com/nikrabaev/menv/go/tests/helpers"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/core/ops"
+	"github.com/nikrabaev/genv/internal/registry"
+	"github.com/nikrabaev/genv/tests/helpers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -88,8 +88,8 @@ func TestPlanVaultAdd(t *testing.T) {
 	r := helpers.MakeRegistry()
 	res, err := ops.PlanVaultAdd(r, ops.VaultAddInput{
 		Name:        "staging",
-		VaultType:   "menv-local",
-		VaultConfig: map[string]any{"filename": ".menv/staging.json", "encryption": false},
+		VaultType:   "genv-local",
+		VaultConfig: map[string]any{"filename": ".genv/staging.json", "encryption": false},
 	})
 	require.NoError(t, err)
 	_, exists := res.Next.Vaults["staging"]

@@ -1,1 +1,12 @@
-menv
+.genv/values/
+.genv/backups/
+.superpowers/
+# installer-managed agent skills (restored from skills-lock.json)
+.agents/
+.claude/skills/
+# generated env files (genv owns these)
+.env
+.env.*
+!.env.example
+# compiled binary
+/genv

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nikrabaev/menv/go/internal/core"
-	"github.com/nikrabaev/menv/go/internal/vault"
-	_ "github.com/nikrabaev/menv/go/internal/vault/local"
+	"github.com/nikrabaev/genv/internal/core"
+	"github.com/nikrabaev/genv/internal/vault"
+	_ "github.com/nikrabaev/genv/internal/vault/local"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,20 +16,20 @@ import (
 func plainCtx(t *testing.T) (vault.VaultInitContext, json.RawMessage) {
 	t.Helper()
 	root := t.TempDir()
-	cfg, _ := json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": false})
+	cfg, _ := json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": false})
 	return vault.VaultInitContext{Root: root, Auth: vault.VaultAuth{}}, cfg
 }
 
 func encCtx(t *testing.T, passphrase string) (vault.VaultInitContext, json.RawMessage) {
 	t.Helper()
 	root := t.TempDir()
-	cfg, _ := json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": true})
+	cfg, _ := json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": true})
 	return vault.VaultInitContext{Root: root, Auth: vault.VaultAuth{Secret: passphrase, HasSecret: true}}, cfg
 }
 
 func openSession(t *testing.T, ctx vault.VaultInitContext, cfg json.RawMessage) core.VaultSession {
 	t.Helper()
-	p, err := vault.GetProvider("menv-local")
+	p, err := vault.GetProvider("genv-local")
 	require.NoError(t, err)
 	sess, err := p.Init(cfg, ctx)
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestPlain_StoredAsJSON(t *testing.T) {
 	sess := openSession(t, ctx, cfg)
 	require.NoError(t, sess.Set("KEY", "val"))
 
-	data, err := os.ReadFile(filepath.Join(ctx.Root, ".menv/vault.json"))
+	data, err := os.ReadFile(filepath.Join(ctx.Root, ".genv/vault.json"))
 	require.NoError(t, err)
 
 	var parsed map[string]string
@@ -135,7 +135,7 @@ func TestEncrypted_RoundTrip(t *testing.T) {
 	require.NoError(t, sess1.Close())
 
 	// File on disk must not be plaintext JSON.
-	data, err := os.ReadFile(filepath.Join(ctx.Root, ".menv/vault.json"))
+	data, err := os.ReadFile(filepath.Join(ctx.Root, ".genv/vault.json"))
 	require.NoError(t, err)
 	assert.NotContains(t, string(data), "p@ssw0rd", "plaintext must never appear in encrypted file")
 	assert.NotContains(t, string(data), "SECRET", "key must not appear in encrypted file")
@@ -155,9 +155,9 @@ func TestEncrypted_WrongPassphrase(t *testing.T) {
 	require.NoError(t, sess.Close())
 
 	// Try opening with the wrong passphrase.
-	wrongCfg, _ := json.Marshal(map[string]any{"filename": ".menv/vault.json", "encryption": true})
+	wrongCfg, _ := json.Marshal(map[string]any{"filename": ".genv/vault.json", "encryption": true})
 	wrongCtx := vault.VaultInitContext{Root: ctx.Root, Auth: vault.VaultAuth{Secret: "wrong", HasSecret: true}}
-	p, _ := vault.GetProvider("menv-local")
+	p, _ := vault.GetProvider("genv-local")
 	_, err := p.Init(wrongCfg, wrongCtx)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "AUTH_FAILED")
@@ -167,7 +167,7 @@ func TestEncrypted_NoPassphrase(t *testing.T) {
 	_, cfg := encCtx(t, "some-pass")
 	// Try opening encrypted vault without providing a passphrase.
 	ctx := vault.VaultInitContext{Root: t.TempDir(), Auth: vault.VaultAuth{}}
-	p, _ := vault.GetProvider("menv-local")
+	p, _ := vault.GetProvider("genv-local")
 	_, err := p.Init(cfg, ctx)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "AUTH_MISSING")
@@ -182,15 +182,15 @@ func TestGetProvider_Unknown(t *testing.T) {
 }
 
 func TestGetProvider_LocalRegistered(t *testing.T) {
-	p, err := vault.GetProvider("menv-local")
+	p, err := vault.GetProvider("genv-local")
 	require.NoError(t, err)
-	assert.Equal(t, "menv-local", p.Type())
+	assert.Equal(t, "genv-local", p.Type())
 }
 
 // --- config validation ---
 
 func TestLocalProvider_MissingFilename(t *testing.T) {
-	p, _ := vault.GetProvider("menv-local")
+	p, _ := vault.GetProvider("genv-local")
 	cfg, _ := json.Marshal(map[string]any{"encryption": false})
 	_, err := p.Init(cfg, vault.VaultInitContext{Root: t.TempDir()})
 	require.Error(t, err)

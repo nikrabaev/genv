@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const BackupsDir = ".menv/backups"
+const BackupsDir = ".genv/backups"
 
 // BackupKey returns a timestamp-based key like "20260621-143022".
 func BackupKey(t time.Time) string {
@@ -20,7 +20,7 @@ func BackupKey(t time.Time) string {
 }
 
 // CollectBackupPaths returns all paths that should be included in a backup:
-// the registry, menv-local vault files that exist, and all menv-managed
+// the registry, genv-local vault files that exist, and all genv-managed
 // generated files (those bearing the ownership marker).
 //
 // The ownershipMarker parameter is the first-line marker string; the
@@ -57,7 +57,7 @@ func CollectBackupPaths(root string, registryFilename string, vaultFilenames []s
 	return result, nil
 }
 
-// CreateBackup copies each path to .menv/backups/<key>/<path> and returns
+// CreateBackup copies each path to .genv/backups/<key>/<path> and returns
 // the relative backup directory.
 func CreateBackup(root, key string, paths []string) (string, error) {
 	for _, rel := range paths {
@@ -147,7 +147,7 @@ func copyFile(src, dst string) error {
 	return err
 }
 
-// LocalVaultFilenames extracts the filenames of all menv-local vaults from a
+// LocalVaultFilenames extracts the filenames of all genv-local vaults from a
 // raw registry JSON (to avoid importing the registry package here).
 func LocalVaultFilenames(registryJSON []byte) []string {
 	var reg struct {
@@ -161,7 +161,7 @@ func LocalVaultFilenames(registryJSON []byte) []string {
 	}
 	var out []string
 	for _, v := range reg.Vaults {
-		if v.VaultType != "menv-local" {
+		if v.VaultType != "genv-local" {
 			continue
 		}
 		var cfg struct {

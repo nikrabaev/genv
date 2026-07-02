@@ -3,19 +3,19 @@ package vault
 import (
 	"encoding/json"
 
-	"github.com/nikrabaev/menv/go/internal/core"
+	"github.com/nikrabaev/genv/internal/core"
 )
 
 // VaultAuth is the resolved auth material for one vault. Interpretation is
-// provider-specific: menv-local uses secret as the age passphrase.
+// provider-specific: genv-local uses secret as the age passphrase.
 type VaultAuth struct {
-	Secret string // empty means no auth supplied
-	HasSecret bool // distinguishes "no auth" from empty-string passphrase
+	Secret    string // empty means no auth supplied
+	HasSecret bool   // distinguishes "no auth" from empty-string passphrase
 }
 
 // VaultInitContext is passed to VaultProvider.Init.
 type VaultInitContext struct {
-	Root string    // repo root — providers resolve relative paths against this
+	Root string // repo root — providers resolve relative paths against this
 	Auth VaultAuth
 }
 
