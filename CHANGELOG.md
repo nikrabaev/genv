@@ -11,5 +11,3 @@
 ### Miscellaneous Chores
 
 * release 0.1.0 ([2af7a3f](https://github.com/nikrabaev/genv/commit/2af7a3fca2d1f1335888a0bcf1ba0433341e0906))
-
-## Changelog
